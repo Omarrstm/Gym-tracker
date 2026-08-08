@@ -19,6 +19,7 @@ model User {
   createdAt DateTime @default(now())
 
   workoutLogs WorkoutLog[]
+  programs    Program[]
 }
 
 enum MuscleGroup {
@@ -37,7 +38,8 @@ model Exercise {
   muscleGroup MuscleGroup
   createdAt   DateTime    @default(now())
 
-  workoutLogs WorkoutLog[]
+  workoutLogs      WorkoutLog[]
+  programExercises ProgramExercise[]
 }
 
 model WorkoutLog {
@@ -50,6 +52,51 @@ model WorkoutLog {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+model Program {
+  id        String   @id @default(cuid())
+  name      String
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  days ProgramDay[]
+}
+
+model ProgramDay {
+  id        String    @id @default(cuid())
+  dayOfWeek DayOfWeek
+
+  programId String
+  program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  exercises ProgramExercise[]
+
+  @@unique([programId, dayOfWeek])
+}
+
+model ProgramExercise {
+  id    String @id @default(cuid())
+  order Int
+
+  programDayId String
+  programDay   ProgramDay @relation(fields: [programDayId], references: [id], onDelete: Cascade)
 
   exerciseId String
   exercise   Exercise @relation(fields: [exerciseId], references: [id])
