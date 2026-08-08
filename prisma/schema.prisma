@@ -37,6 +37,7 @@ model Exercise {
   name        String      @unique
   muscleGroup MuscleGroup
   imageUrl    String?
+  description String?
   createdAt   DateTime    @default(now())
 
   workoutLogs      WorkoutLog[]
@@ -93,8 +94,11 @@ model ProgramDay {
 }
 
 model ProgramExercise {
-  id    String @id @default(cuid())
-  order Int
+  id            String @id @default(cuid())
+  order         Int
+  targetWeight  Float
+  targetSets    Int
+  targetReps    Int
 
   programDayId String
   programDay   ProgramDay @relation(fields: [programDayId], references: [id], onDelete: Cascade)

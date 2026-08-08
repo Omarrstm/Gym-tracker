@@ -10,6 +10,7 @@ type Exercise = {
   name: string;
   muscleGroup: MuscleGroup;
   imageUrl: string | null;
+  description: string | null;
 };
 
 function BarbellIcon() {

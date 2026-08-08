@@ -29,3 +29,20 @@ body {
   color: var(--color-text);
   font-family: var(--font-body), Arial, Helvetica, sans-serif;
 }
+
+.hero-photo {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: min(52vh, 420px);
+  z-index: -10;
+  background-image: url("/backgrounds/gym-hero.jpg");
+  background-size: cover;
+  background-position: 45% 85%;
+}
+
+.hero-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(22, 21, 26, 0.25) 0%, rgba(22, 21, 26, 0.55) 55%, var(--color-bg) 100%);
+}

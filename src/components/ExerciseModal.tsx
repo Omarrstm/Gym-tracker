@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
-import type { MuscleGroup } from "@/generated/prisma/client";
+import type { DayOfWeek, MuscleGroup } from "@/generated/prisma/client";
 import { muscleGroupLabels } from "@/lib/muscleGroups";
+import { dayLabels, dayOrder } from "@/lib/days";
+import { addExerciseToProgram } from "@/app/exercises/actions";
 
 type Exercise = {
   id: string;
   name: string;
   muscleGroup: MuscleGroup;
   imageUrl: string | null;
+  description: string | null;
 };
 
 function BarbellIcon() {
@@ -44,6 +47,130 @@ function CloseIcon() {
   );
 }
 
+function AddToProgramForm({ exerciseId }: { exerciseId: string }) {
+  const [open, setOpen] = useState(false);
+  const [day, setDay] = useState<DayOfWeek>("MONDAY");
+  const [weight, setWeight] = useState("");
+  const [sets, setSets] = useState("");
+  const [reps, setReps] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [successDay, setSuccessDay] = useState<DayOfWeek | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleSubmit() {
+    setError(null);
+    const weightNum = Number(weight);
+    const setsNum = Number(sets);
+    const repsNum = Number(reps);
+
+    startTransition(async () => {
+      try {
+        await addExerciseToProgram({
+          exerciseId,
+          dayOfWeek: day,
+          weight: weightNum,
+          sets: setsNum,
+          reps: repsNum,
+        });
+        setSuccessDay(day);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Couldn't add this exercise.");
+      }
+    });
+  }
+
+  if (successDay) {
+    return (
+      <div className="mt-3 rounded-xl border border-accent bg-accent-soft px-3.5 py-3 text-[13px] font-semibold text-accent">
+        Added to {dayLabels[successDay]} &mdash; {weight} kg &times; {sets} sets &times; {reps} reps
+      </div>
+    );
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="mt-3 w-full rounded-xl bg-accent py-3 text-center text-[13px] font-bold tracking-wide text-bg uppercase"
+      >
+        + Add to Program
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-3 rounded-xl border border-border bg-surface-2 p-3.5">
+      <p className="mb-2 text-[11px] font-semibold tracking-wide text-muted uppercase">Day</p>
+      <div className="flex flex-wrap gap-1.5">
+        {dayOrder.map((d) => (
+          <button
+            key={d}
+            onClick={() => setDay(d)}
+            className={`rounded-full border px-3 py-1.5 text-[12px] font-semibold ${
+              day === d
+                ? "border-accent bg-accent-soft text-accent"
+                : "border-border bg-surface text-muted"
+            }`}
+          >
+            {dayLabels[d].slice(0, 3)}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] font-semibold tracking-wide text-muted uppercase">
+            Weight (kg)
+          </span>
+          <input
+            type="number"
+            inputMode="decimal"
+            min="0"
+            step="0.5"
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            className="rounded-lg border border-border bg-surface px-2.5 py-2 text-[14px] text-text outline-none focus-visible:border-accent"
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] font-semibold tracking-wide text-muted uppercase">Sets</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            min="1"
+            step="1"
+            value={sets}
+            onChange={(e) => setSets(e.target.value)}
+            className="rounded-lg border border-border bg-surface px-2.5 py-2 text-[14px] text-text outline-none focus-visible:border-accent"
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] font-semibold tracking-wide text-muted uppercase">Reps</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            min="1"
+            step="1"
+            value={reps}
+            onChange={(e) => setReps(e.target.value)}
+            className="rounded-lg border border-border bg-surface px-2.5 py-2 text-[14px] text-text outline-none focus-visible:border-accent"
+          />
+        </label>
+      </div>
+
+      {error && <p className="mt-2 text-[12px] text-red-400">{error}</p>}
+
+      <button
+        onClick={handleSubmit}
+        disabled={isPending || !weight || !sets || !reps}
+        className="mt-3 w-full rounded-xl bg-accent py-2.5 text-center text-[13px] font-bold tracking-wide text-bg uppercase disabled:opacity-50"
+      >
+        {isPending ? "Saving..." : "Save"}
+      </button>
+    </div>
+  );
+}
+
 export default function ExerciseModal({
   exercise,
   onClose,
@@ -65,7 +192,7 @@ export default function ExerciseModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md overflow-hidden rounded-t-2xl border border-border bg-surface sm:rounded-2xl"
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-border bg-surface sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative aspect-[4/3] w-full bg-surface-2">
@@ -98,6 +225,10 @@ export default function ExerciseModal({
           <h2 className="font-display text-[24px] leading-tight tracking-wide text-text uppercase">
             {exercise.name}
           </h2>
+          {exercise.description && (
+            <p className="mt-1.5 text-[13px] leading-relaxed text-muted">{exercise.description}</p>
+          )}
+          <AddToProgramForm exerciseId={exercise.id} />
         </div>
       </div>
     </div>
