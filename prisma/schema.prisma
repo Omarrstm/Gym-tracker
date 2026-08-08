@@ -36,6 +36,7 @@ model Exercise {
   id          String      @id @default(cuid())
   name        String      @unique
   muscleGroup MuscleGroup
+  imageUrl    String?
   createdAt   DateTime    @default(now())
 
   workoutLogs      WorkoutLog[]
