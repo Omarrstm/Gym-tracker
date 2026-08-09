@@ -19,3 +19,18 @@ export const dayOrder: DayOfWeek[] = [
   "SATURDAY",
   "SUNDAY",
 ];
+
+// JS Date#getDay(): 0=Sunday..6=Saturday
+const jsDayToDayOfWeek: DayOfWeek[] = [
+  "SUNDAY",
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+];
+
+export function getTodayDayOfWeek(): DayOfWeek {
+  return jsDayToDayOfWeek[new Date().getDay()];
+}

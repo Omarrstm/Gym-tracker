@@ -2,6 +2,8 @@ import Image from "next/image";
 import prisma from "@/lib/prisma";
 import ExercisePicker from "@/components/ExercisePicker";
 
+export const dynamic = "force-dynamic";
+
 export default async function ExercisesPage() {
   const exercises = await prisma.exercise.findMany({
     select: { id: true, name: true, muscleGroup: true, imageUrl: true, description: true },
