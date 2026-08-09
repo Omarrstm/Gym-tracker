@@ -21,6 +21,14 @@ export const getUser = cache(async () => {
   const { userId } = await verifySession();
   return prisma.user.findUniqueOrThrow({
     where: { id: userId },
-    select: { id: true, email: true, name: true },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      heightCm: true,
+      weightKg: true,
+      dateOfBirth: true,
+      sex: true,
+    },
   });
 });

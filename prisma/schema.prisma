@@ -12,12 +12,21 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Sex {
+  MALE
+  FEMALE
+}
+
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  password  String
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  email       String    @unique
+  name        String?
+  password    String
+  createdAt   DateTime  @default(now())
+  heightCm    Float?
+  weightKg    Float?
+  dateOfBirth DateTime?
+  sex         Sex?
 
   workoutLogs WorkoutLog[]
   programs    Program[]

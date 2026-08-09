@@ -44,3 +44,39 @@ export async function updatePassword(
 
   return { success: "Password updated." };
 }
+
+export async function updateBodyStats(
+  _prevState: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  const heightCm = Number(formData.get("heightCm"));
+  const weightKg = Number(formData.get("weightKg"));
+  const dateOfBirthRaw = String(formData.get("dateOfBirth") ?? "");
+  const sex = String(formData.get("sex") ?? "");
+
+  if (!Number.isFinite(heightCm) || heightCm < 50 || heightCm > 272) {
+    return { error: "Enter a valid height in cm." };
+  }
+  if (!Number.isFinite(weightKg) || weightKg < 20 || weightKg > 400) {
+    return { error: "Enter a valid weight in kg." };
+  }
+  const dateOfBirth = new Date(dateOfBirthRaw);
+  if (!dateOfBirthRaw || Number.isNaN(dateOfBirth.getTime())) {
+    return { error: "Enter a valid date of birth." };
+  }
+  if (dateOfBirth > new Date()) {
+    return { error: "Date of birth can't be in the future." };
+  }
+  if (sex !== "MALE" && sex !== "FEMALE") {
+    return { error: "Select a biological sex." };
+  }
+
+  const { userId } = await verifySession();
+  await prisma.user.update({
+    where: { id: userId },
+    data: { heightCm, weightKg, dateOfBirth, sex: sex as "MALE" | "FEMALE" },
+  });
+
+  revalidatePath("/profile");
+  return { success: "Body stats updated." };
+}

@@ -1,12 +1,20 @@
 import Link from "next/link";
 import { getUser } from "@/lib/dal";
+import { calculateAge, calculateBMI, calculateBMR, bmiCategory } from "@/lib/bodyStats";
 import NameForm from "./NameForm";
 import PasswordForm from "./PasswordForm";
+import BodyStatsForm from "./BodyStatsForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
   const user = await getUser();
+
+  const hasBodyStats = user.heightCm != null && user.weightKg != null && user.dateOfBirth != null && user.sex != null;
+  const bmi = hasBodyStats ? calculateBMI(user.weightKg!, user.heightCm!) : null;
+  const bmr = hasBodyStats
+    ? calculateBMR(user.weightKg!, user.heightCm!, calculateAge(user.dateOfBirth!), user.sex!)
+    : null;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-6">
@@ -38,6 +46,38 @@ export default async function ProfilePage() {
             Change Password
           </h2>
           <PasswordForm />
+        </section>
+
+        <section className="card-shine rounded-2xl p-6">
+          <h2 className="relative z-10 mb-4 font-display text-[15px] tracking-wide text-text uppercase">
+            Body Stats
+          </h2>
+
+          {hasBodyStats && (
+            <div className="relative z-10 mb-5 grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-border bg-surface-2 px-4 py-3">
+                <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">BMI</p>
+                <p className="font-display text-[26px] leading-none text-text tabular-nums">
+                  {bmi!.toFixed(1)}
+                </p>
+                <p className="mt-1 text-[12px] text-accent">{bmiCategory(bmi!)}</p>
+              </div>
+              <div className="rounded-xl border border-border bg-surface-2 px-4 py-3">
+                <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">BMR</p>
+                <p className="font-display text-[26px] leading-none text-text tabular-nums">
+                  {Math.round(bmr!)}
+                </p>
+                <p className="mt-1 text-[12px] text-accent">kcal / day at rest</p>
+              </div>
+            </div>
+          )}
+
+          <BodyStatsForm
+            initialHeightCm={user.heightCm}
+            initialWeightKg={user.weightKg}
+            initialDateOfBirth={user.dateOfBirth ? user.dateOfBirth.toISOString().slice(0, 10) : null}
+            initialSex={user.sex}
+          />
         </section>
       </div>
     </div>
