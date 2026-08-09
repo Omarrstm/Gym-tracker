@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { getDevUserId } from "@/lib/devUser";
+import { verifySession } from "@/lib/dal";
 import type { DayOfWeek } from "@/generated/prisma/client";
 
 export async function addExerciseToProgram(input: {
@@ -17,7 +17,7 @@ export async function addExerciseToProgram(input: {
   if (!Number.isInteger(sets) || sets < 1) throw new Error("Enter a valid number of sets.");
   if (!Number.isInteger(reps) || reps < 1) throw new Error("Enter a valid number of reps.");
 
-  const userId = await getDevUserId();
+  const { userId } = await verifySession();
 
   let program = await prisma.program.findFirst({
     where: { userId, isActive: true },

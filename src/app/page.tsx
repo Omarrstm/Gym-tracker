@@ -1,13 +1,15 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { getDevUserId } from "@/lib/devUser";
+import { getUser } from "@/lib/dal";
+import { logout } from "@/app/actions";
 import { dayLabels, getTodayDayOfWeek } from "@/lib/days";
 import TodayWorkout from "@/components/TodayWorkout";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const userId = await getDevUserId();
+  const user = await getUser();
+  const userId = user.id;
   const today = getTodayDayOfWeek();
   const todayLabel = new Date().toLocaleDateString("en-US", {
     month: "long",
@@ -86,6 +88,14 @@ export default async function Home() {
           >
             History
           </Link>
+          <form action={logout}>
+            <button
+              type="submit"
+              className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+            >
+              Log Out ({user.name})
+            </button>
+          </form>
         </div>
       </header>
 

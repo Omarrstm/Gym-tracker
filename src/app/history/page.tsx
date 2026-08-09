@@ -1,6 +1,6 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { getDevUserId } from "@/lib/devUser";
+import { verifySession } from "@/lib/dal";
 import { muscleGroupLabels } from "@/lib/muscleGroups";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ function dayLabel(d: Date) {
 }
 
 export default async function HistoryPage() {
-  const userId = await getDevUserId();
+  const { userId } = await verifySession();
   const logs = await prisma.workoutLog.findMany({
     where: { userId },
     orderBy: { date: "desc" },

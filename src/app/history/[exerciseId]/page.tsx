@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { getDevUserId } from "@/lib/devUser";
+import { verifySession } from "@/lib/dal";
 import { muscleGroupLabels } from "@/lib/muscleGroups";
 import WeightTrendChart from "@/components/WeightTrendChart";
 
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ExerciseHistoryPage(props: PageProps<"/history/[exerciseId]">) {
   const { exerciseId } = await props.params;
-  const userId = await getDevUserId();
+  const { userId } = await verifySession();
 
   const exercise = await prisma.exercise.findUnique({
     where: { id: exerciseId },
