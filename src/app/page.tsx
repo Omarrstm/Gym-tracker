@@ -73,12 +73,20 @@ export default async function Home() {
             Today&rsquo;s Workout
           </h1>
         </div>
-        <Link
-          href="/exercises"
-          className="mt-1 text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-        >
-          Exercise Library
-        </Link>
+        <div className="mt-1 flex flex-col items-end gap-1.5">
+          <Link
+            href="/exercises"
+            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+          >
+            Exercise Library
+          </Link>
+          <Link
+            href="/history"
+            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+          >
+            History
+          </Link>
+        </div>
       </header>
 
       <TodayWorkout items={items} hasProgram={program !== null} />
