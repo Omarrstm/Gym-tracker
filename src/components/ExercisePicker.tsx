@@ -109,12 +109,12 @@ export default function ExercisePicker({ exercises }: { exercises: Exercise[] })
             <button
               key={exercise.id}
               onClick={() => setSelected(exercise)}
-              className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3.5 py-3 text-left transition-colors hover:border-accent/60"
+              className="card-shine card-pattern flex items-center gap-3 rounded-xl px-3.5 py-3 text-left"
             >
-              <span className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-[9px] bg-surface-2 text-accent">
+              <span className="relative z-10 flex h-[34px] w-[34px] flex-none items-center justify-center rounded-[9px] bg-surface-2 text-accent">
                 <BarbellIcon />
               </span>
-              <span>
+              <span className="relative z-10">
                 <p className="text-[14.5px] font-semibold text-text">{exercise.name}</p>
                 <p className="text-[11px] uppercase tracking-wide text-muted">
                   {muscleGroupLabels[exercise.muscleGroup]}

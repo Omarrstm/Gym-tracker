@@ -5,10 +5,10 @@
   --color-surface: #201e24;
   --color-surface-2: #29262e;
   --color-border: #322e37;
-  --color-accent: #d3993f;
-  --color-accent-soft: #d3993f26;
-  --color-text: #ece7de;
-  --color-muted: #948f85;
+  --color-accent: #d6d6da;
+  --color-accent-soft: #d6d6da26;
+  --color-text: #eceef0;
+  --color-muted: #93949a;
 }
 
 @theme inline {
@@ -30,19 +30,67 @@ body {
   font-family: var(--font-body), Arial, Helvetica, sans-serif;
 }
 
-.hero-photo {
-  position: fixed;
-  inset: 0 0 auto 0;
-  height: min(52vh, 420px);
-  z-index: -10;
-  background-image: url("/backgrounds/gym-hero.jpg");
-  background-size: cover;
-  background-position: 45% 85%;
+.card-shine {
+  position: relative;
+  border: 1px solid transparent;
+  background-image:
+    linear-gradient(var(--color-surface), var(--color-surface)),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0.04) 30%,
+      rgba(255, 255, 255, 0.02) 70%,
+      rgba(255, 255, 255, 0.16) 100%
+    );
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  transition: background-image 0.15s ease;
 }
 
-.hero-photo::after {
+.card-shine:hover {
+  background-image:
+    linear-gradient(var(--color-surface), var(--color-surface)),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.65) 0%,
+      rgba(255, 255, 255, 0.08) 30%,
+      rgba(255, 255, 255, 0.04) 70%,
+      rgba(255, 255, 255, 0.28) 100%
+    );
+}
+
+.card-pattern::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(22, 21, 26, 0.25) 0%, rgba(22, 21, 26, 0.55) 55%, var(--color-bg) 100%);
+  z-index: 0;
+  border-radius: inherit;
+  background-image:
+    /* planet body, subtle sphere shading */
+    radial-gradient(circle 9px at 85% 50%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.14) 55%, rgba(255, 255, 255, 0.05) 100%),
+    /* concentric ring bands, flattened ellipse */
+    radial-gradient(
+      ellipse 90px 24px at 85% 50%,
+      transparent 0%,
+      transparent 40%,
+      rgba(255, 255, 255, 0.16) 42%,
+      rgba(255, 255, 255, 0.16) 45%,
+      transparent 47%,
+      transparent 56%,
+      rgba(255, 255, 255, 0.12) 58%,
+      rgba(255, 255, 255, 0.12) 61%,
+      transparent 63%,
+      transparent 72%,
+      rgba(255, 255, 255, 0.08) 74%,
+      rgba(255, 255, 255, 0.08) 77%,
+      transparent 79%
+    ),
+    /* a few faint stars for context */
+    radial-gradient(circle at 58% 25%, rgba(255, 255, 255, 0.45) 0px, rgba(255, 255, 255, 0.45) 1px, transparent 1px),
+    radial-gradient(circle at 63% 78%, rgba(255, 255, 255, 0.35) 0px, rgba(255, 255, 255, 0.35) 1px, transparent 1px),
+    radial-gradient(circle at 95% 82%, rgba(255, 255, 255, 0.4) 0px, rgba(255, 255, 255, 0.4) 1px, transparent 1px),
+    radial-gradient(circle at 96% 18%, rgba(255, 255, 255, 0.35) 0px, rgba(255, 255, 255, 0.35) 1px, transparent 1px);
+  -webkit-mask-image: linear-gradient(to left, black 0%, black 40%, transparent 85%);
+  mask-image: linear-gradient(to left, black 0%, black 40%, transparent 85%);
+  pointer-events: none;
 }
