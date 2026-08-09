@@ -88,12 +88,18 @@ export default async function Home() {
           >
             History
           </Link>
+          <Link
+            href="/profile"
+            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+          >
+            {user.name}
+          </Link>
           <form action={logout}>
             <button
               type="submit"
               className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
             >
-              Log Out ({user.name})
+              Log Out
             </button>
           </form>
         </div>
