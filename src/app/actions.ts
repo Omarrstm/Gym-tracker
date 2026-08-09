@@ -27,6 +27,41 @@ export async function logWorkoutSet(input: {
   revalidatePath("/");
 }
 
+export async function updateWorkoutLog(input: {
+  logId: string;
+  weight: number;
+  sets: number;
+  reps: number;
+}) {
+  const { logId, weight, sets, reps } = input;
+
+  if (!Number.isFinite(weight) || weight < 0) throw new Error("Enter a valid weight.");
+  if (!Number.isInteger(sets) || sets < 1) throw new Error("Enter a valid number of sets.");
+  if (!Number.isInteger(reps) || reps < 1) throw new Error("Enter a valid number of reps.");
+
+  const { userId } = await verifySession();
+  const log = await prisma.workoutLog.findFirst({ where: { id: logId, userId } });
+  if (!log) throw new Error("Log entry not found.");
+
+  await prisma.workoutLog.update({ where: { id: logId }, data: { weight, sets, reps } });
+
+  revalidatePath("/");
+  revalidatePath("/history");
+  revalidatePath(`/history/${log.exerciseId}`);
+}
+
+export async function deleteWorkoutLog(logId: string) {
+  const { userId } = await verifySession();
+  const log = await prisma.workoutLog.findFirst({ where: { id: logId, userId } });
+  if (!log) throw new Error("Log entry not found.");
+
+  await prisma.workoutLog.delete({ where: { id: logId } });
+
+  revalidatePath("/");
+  revalidatePath("/history");
+  revalidatePath(`/history/${log.exerciseId}`);
+}
+
 export async function logout() {
   await deleteSession();
   redirect("/login");

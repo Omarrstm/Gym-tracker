@@ -1,7 +1,7 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/dal";
-import { muscleGroupLabels } from "@/lib/muscleGroups";
+import HistoryLogRow from "@/components/HistoryLogRow";
 
 export const dynamic = "force-dynamic";
 
@@ -83,21 +83,7 @@ export default async function HistoryPage() {
               </p>
               <div className="flex flex-col gap-2">
                 {group.logs.map((log) => (
-                  <Link
-                    key={log.id}
-                    href={`/history/${log.exercise.id}`}
-                    className="card-shine flex items-center justify-between rounded-xl px-3.5 py-3"
-                  >
-                    <span className="relative z-10">
-                      <p className="text-[14.5px] font-semibold text-text">{log.exercise.name}</p>
-                      <p className="text-[11px] uppercase tracking-wide text-muted">
-                        {muscleGroupLabels[log.exercise.muscleGroup]}
-                      </p>
-                    </span>
-                    <span className="relative z-10 text-[13px] text-muted">
-                      {log.weight} kg &times; {log.sets} &times; {log.reps}
-                    </span>
-                  </Link>
+                  <HistoryLogRow key={log.id} log={log} />
                 ))}
               </div>
             </div>

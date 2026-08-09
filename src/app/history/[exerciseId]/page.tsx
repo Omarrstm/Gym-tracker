@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/dal";
 import { muscleGroupLabels } from "@/lib/muscleGroups";
 import WeightTrendChart from "@/components/WeightTrendChart";
+import SessionRow from "@/components/SessionRow";
 
 export const dynamic = "force-dynamic";
 
@@ -54,17 +55,7 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
               All Sessions
             </p>
             {[...logs].reverse().map((log) => (
-              <div
-                key={log.id}
-                className="flex items-center justify-between rounded-xl border border-border bg-surface px-3.5 py-3"
-              >
-                <span className="text-[13px] text-muted">
-                  {log.date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                </span>
-                <span className="text-[13.5px] font-semibold text-text">
-                  {log.weight} kg &times; {log.sets} &times; {log.reps}
-                </span>
-              </div>
+              <SessionRow key={log.id} log={{ ...log, date: log.date.toISOString() }} />
             ))}
           </div>
         </>
