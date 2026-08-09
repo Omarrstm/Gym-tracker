@@ -48,12 +48,20 @@ export default async function HistoryPage() {
             History
           </h1>
         </div>
-        <Link
-          href="/"
-          className="mt-1 text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-        >
-          Today
-        </Link>
+        <div className="mt-1 flex flex-col items-end gap-1.5">
+          <Link
+            href="/"
+            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+          >
+            Today
+          </Link>
+          <Link
+            href="/program"
+            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+          >
+            Programs
+          </Link>
+        </div>
       </header>
 
       {groups.length === 0 ? (

@@ -50,6 +50,12 @@ export default async function ExercisesPage() {
               Today
             </Link>
             <Link
+              href="/program"
+              className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+            >
+              Programs
+            </Link>
+            <Link
               href="/history"
               className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
             >
