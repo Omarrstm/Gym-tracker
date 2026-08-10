@@ -1,10 +1,22 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState, useActionState } from "react";
 import { updatePassword } from "./actions";
 
 export default function PasswordForm() {
+  const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(updatePassword, undefined);
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full rounded-xl border border-dashed border-border py-2.5 text-center text-[12px] font-semibold tracking-wide text-muted uppercase hover:border-accent hover:text-accent"
+      >
+        Change Password
+      </button>
+    );
+  }
 
   return (
     <form
@@ -56,13 +68,22 @@ export default function PasswordForm() {
       {state?.error && <p className="text-[12px] text-red-400">{state.error}</p>}
       {state?.success && <p className="text-[12px] text-accent">{state.success}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-1 w-full rounded-xl bg-accent py-2.5 text-center text-[13px] font-bold tracking-wide text-bg uppercase disabled:opacity-50"
-      >
-        {pending ? "Updating..." : "Update Password"}
-      </button>
+      <div className="mt-1 flex items-center gap-2">
+        <button
+          type="submit"
+          disabled={pending}
+          className="flex-1 rounded-xl bg-accent py-2.5 text-center text-[13px] font-bold tracking-wide text-bg uppercase disabled:opacity-50"
+        >
+          {pending ? "Updating..." : "Update Password"}
+        </button>
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="shrink-0 text-[12px] font-semibold text-muted hover:text-text"
+        >
+          Cancel
+        </button>
+      </div>
     </form>
   );
 }

@@ -51,7 +51,7 @@ export default async function ProfilePage() {
 
         <section className="card-shine rounded-2xl p-6">
           <h2 className="relative z-10 mb-4 font-display text-[15px] tracking-wide text-text uppercase">
-            Change Password
+            Password
           </h2>
           <PasswordForm />
         </section>
