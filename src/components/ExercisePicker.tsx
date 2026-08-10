@@ -46,7 +46,13 @@ function SearchIcon() {
   );
 }
 
-export default function ExercisePicker({ exercises }: { exercises: Exercise[] }) {
+export default function ExercisePicker({
+  exercises,
+  prByExercise = {},
+}: {
+  exercises: Exercise[];
+  prByExercise?: Record<string, number>;
+}) {
   const [query, setQuery] = useState("");
   const [activeGroup, setActiveGroup] = useState<MuscleGroup | "ALL">("ALL");
   const [selected, setSelected] = useState<Exercise | null>(null);
@@ -114,18 +120,29 @@ export default function ExercisePicker({ exercises }: { exercises: Exercise[] })
               <span className="relative z-10 flex h-[34px] w-[34px] flex-none items-center justify-center rounded-[9px] bg-surface-2 text-accent">
                 <BarbellIcon />
               </span>
-              <span className="relative z-10">
+              <span className="relative z-10 min-w-0 flex-1">
                 <p className="text-[14.5px] font-semibold text-text">{exercise.name}</p>
                 <p className="text-[11px] uppercase tracking-wide text-muted">
                   {muscleGroupLabels[exercise.muscleGroup]}
                 </p>
               </span>
+              {prByExercise[exercise.id] !== undefined && (
+                <span className="relative z-10 shrink-0 text-[12px] text-muted">
+                  PR {prByExercise[exercise.id]} kg
+                </span>
+              )}
             </button>
           ))
         )}
       </div>
 
-      {selected && <ExerciseModal exercise={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <ExerciseModal
+          exercise={selected}
+          prWeight={prByExercise[selected.id] ?? null}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 }

@@ -173,9 +173,11 @@ function AddToProgramForm({ exerciseId }: { exerciseId: string }) {
 
 export default function ExerciseModal({
   exercise,
+  prWeight = null,
   onClose,
 }: {
   exercise: Exercise;
+  prWeight?: number | null;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -227,9 +229,16 @@ export default function ExerciseModal({
           </button>
         </div>
         <div className="px-4 py-4">
-          <p className="text-[11px] font-semibold tracking-wide text-accent uppercase">
-            {muscleGroupLabels[exercise.muscleGroup]}
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold tracking-wide text-accent uppercase">
+              {muscleGroupLabels[exercise.muscleGroup]}
+            </p>
+            {prWeight !== null && (
+              <p className="text-[12px] font-semibold text-muted">
+                PR <span className="text-text">{prWeight} kg</span>
+              </p>
+            )}
+          </div>
           <h2 className="font-display text-[24px] leading-tight tracking-wide text-text uppercase">
             {exercise.name}
           </h2>

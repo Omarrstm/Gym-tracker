@@ -1,15 +1,27 @@
 import Image from "next/image";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
+import { verifySession } from "@/lib/dal";
 import ExercisePicker from "@/components/ExercisePicker";
 
 export const dynamic = "force-dynamic";
 
 export default async function ExercisesPage() {
+  const { userId } = await verifySession();
+
   const exercises = await prisma.exercise.findMany({
     select: { id: true, name: true, muscleGroup: true, imageUrl: true, description: true },
     orderBy: { name: "asc" },
   });
+
+  const prs = await prisma.workoutLog.groupBy({
+    by: ["exerciseId"],
+    where: { userId },
+    _max: { weight: true },
+  });
+  const prByExercise = Object.fromEntries(
+    prs.map((p) => [p.exerciseId, p._max.weight as number])
+  );
 
   return (
     <div className="relative min-h-screen w-full flex-1">
@@ -63,7 +75,7 @@ export default async function ExercisesPage() {
             </Link>
           </div>
         </header>
-        <ExercisePicker exercises={exercises} />
+        <ExercisePicker exercises={exercises} prByExercise={prByExercise} />
       </div>
     </div>
   );

@@ -55,6 +55,7 @@ function LogSetRow({ item }: { item: TodayItem }) {
   const [reps, setReps] = useState(String(item.targetReps));
   const [error, setError] = useState<string | null>(null);
   const [justLogged, setJustLogged] = useState(false);
+  const [newPR, setNewPR] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const logged = item.loggedCount + (justLogged ? 1 : 0);
@@ -67,9 +68,15 @@ function LogSetRow({ item }: { item: TodayItem }) {
 
     startTransition(async () => {
       try {
-        await logWorkoutSet({ exerciseId: item.exercise.id, weight: weightNum, sets: setsNum, reps: repsNum });
+        const result = await logWorkoutSet({
+          exerciseId: item.exercise.id,
+          weight: weightNum,
+          sets: setsNum,
+          reps: repsNum,
+        });
         setJustLogged(true);
         setOpen(false);
+        if (result.isNewPR) setNewPR(true);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Couldn't log this set.");
       }
@@ -89,6 +96,11 @@ function LogSetRow({ item }: { item: TodayItem }) {
           </p>
         </span>
         <span className="relative z-10 flex items-center gap-2">
+          {newPR && (
+            <span className="rounded-full border border-accent bg-accent-soft px-2 py-0.5 text-[10px] font-bold tracking-wide text-accent uppercase">
+              New PR
+            </span>
+          )}
           <span className="text-[12.5px] text-muted">
             {item.targetWeight} kg &times; {item.targetSets} &times; {item.targetReps}
           </span>

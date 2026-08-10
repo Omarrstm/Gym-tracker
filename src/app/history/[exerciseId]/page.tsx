@@ -23,6 +23,9 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
     orderBy: { date: "asc" },
   });
 
+  const prWeight = logs.length > 0 ? Math.max(...logs.map((l) => l.weight)) : null;
+  const prLog = prWeight !== null ? logs.find((l) => l.weight === prWeight)! : null;
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
       <header className="border-b border-border px-4 pt-6 pb-4">
@@ -46,7 +49,25 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
         </p>
       ) : (
         <>
-          <div className="card-shine mx-4 mt-4 rounded-xl px-4 py-4">
+          <div className="mx-4 mt-4 flex items-center justify-between rounded-xl border border-border bg-surface-2 px-4 py-3">
+            <div>
+              <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
+                Personal Record
+              </p>
+              <p className="font-display text-[26px] leading-none text-text tabular-nums">
+                {prWeight} kg
+              </p>
+            </div>
+            <p className="text-[12px] text-muted">
+              {prLog!.date.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </p>
+          </div>
+
+          <div className="card-shine mx-4 mt-3 rounded-xl px-4 py-4">
             <WeightTrendChart data={logs.map((l) => ({ date: l.date.toISOString(), weight: l.weight }))} />
           </div>
 
@@ -55,7 +76,11 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
               All Sessions
             </p>
             {[...logs].reverse().map((log) => (
-              <SessionRow key={log.id} log={{ ...log, date: log.date.toISOString() }} />
+              <SessionRow
+                key={log.id}
+                log={{ ...log, date: log.date.toISOString() }}
+                isPR={log.id === prLog!.id}
+              />
             ))}
           </div>
         </>

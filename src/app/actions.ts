@@ -20,11 +20,21 @@ export async function logWorkoutSet(input: {
 
   const { userId } = await verifySession();
 
+  const previousBest = await prisma.workoutLog.aggregate({
+    where: { userId, exerciseId },
+    _max: { weight: true },
+  });
+
   await prisma.workoutLog.create({
     data: { userId, exerciseId, weight, sets, reps },
   });
 
   revalidatePath("/");
+
+  const previousBestWeight = previousBest._max.weight;
+  const isNewPR = previousBestWeight !== null && weight > previousBestWeight;
+
+  return { isNewPR, previousBest: previousBestWeight };
 }
 
 export async function updateWorkoutLog(input: {
