@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/dal";
+import { deleteSession } from "@/lib/session";
 
 export type ProfileFormState = { error?: string; success?: string } | undefined;
 
@@ -96,6 +97,17 @@ export async function logBodyWeight(weightKg: number) {
   ]);
 
   revalidatePath("/profile");
+}
+
+export async function deleteAccount(currentPassword: string) {
+  const { userId } = await verifySession();
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+
+  const isValid = await bcrypt.compare(currentPassword, user.password);
+  if (!isValid) throw new Error("Current password is incorrect.");
+
+  await prisma.user.delete({ where: { id: userId } });
+  await deleteSession();
 }
 
 export async function deleteBodyWeightLog(logId: string) {

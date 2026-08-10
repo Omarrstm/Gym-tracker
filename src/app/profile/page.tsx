@@ -7,6 +7,7 @@ import PasswordForm from "./PasswordForm";
 import BodyStatsForm from "./BodyStatsForm";
 import BodyWeightLogForm from "./BodyWeightLogForm";
 import BodyWeightHistory from "./BodyWeightHistory";
+import DeleteAccountSection from "./DeleteAccountSection";
 
 export const dynamic = "force-dynamic";
 
@@ -102,6 +103,13 @@ export default async function ProfilePage() {
             />
             <BodyWeightLogForm />
           </div>
+        </section>
+
+        <section className="rounded-2xl border border-red-400/30 bg-surface p-6">
+          <h2 className="mb-4 font-display text-[15px] tracking-wide text-red-400 uppercase">
+            Danger Zone
+          </h2>
+          <DeleteAccountSection />
         </section>
       </div>
     </div>
