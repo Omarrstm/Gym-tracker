@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { login } from "./actions";
+import { requestPasswordReset } from "./actions";
 
-export default function LoginPage() {
-  const [state, formAction, pending] = useActionState(login, undefined);
+export default function ForgotPasswordPage() {
+  const [state, formAction, pending] = useActionState(requestPasswordReset, undefined);
 
   return (
     <div className="flex min-h-screen w-full flex-1 items-center justify-center px-4">
@@ -14,10 +14,13 @@ export default function LoginPage() {
           Gym Tracker
         </p>
         <h1 className="font-display text-[28px] leading-none tracking-wide text-text uppercase">
-          Log In
+          Forgot Password
         </h1>
+        <p className="relative z-10 mt-2 text-[13px] text-muted">
+          Enter your email and we&rsquo;ll send you a link to reset your password.
+        </p>
 
-        <form action={formAction} className="relative z-10 mt-5 flex flex-col gap-3">
+        <form action={formAction} key={state?.success} className="relative z-10 mt-5 flex flex-col gap-3">
           <label className="flex flex-col gap-1">
             <span className="text-[11px] font-semibold tracking-wide text-muted uppercase">
               Email
@@ -31,42 +34,21 @@ export default function LoginPage() {
             />
           </label>
 
-          <label className="flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold tracking-wide text-muted uppercase">
-                Password
-              </span>
-              <Link
-                href="/forgot-password"
-                className="text-[11px] font-semibold text-muted underline-offset-2 hover:text-accent hover:underline"
-              >
-                Forgot password?
-              </Link>
-            </div>
-            <input
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              className="rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-[14px] text-text outline-none focus-visible:border-accent"
-            />
-          </label>
-
           {state?.error && <p className="text-[12px] text-red-400">{state.error}</p>}
+          {state?.success && <p className="text-[12px] text-accent">{state.success}</p>}
 
           <button
             type="submit"
             disabled={pending}
             className="mt-2 w-full rounded-xl bg-accent py-2.5 text-center text-[13px] font-bold tracking-wide text-bg uppercase disabled:opacity-50"
           >
-            {pending ? "Logging in..." : "Log In"}
+            {pending ? "Sending..." : "Send Reset Link"}
           </button>
         </form>
 
         <p className="relative z-10 mt-4 text-center text-[13px] text-muted">
-          Don&rsquo;t have an account?{" "}
-          <Link href="/signup" className="font-semibold text-accent hover:underline">
-            Sign up
+          <Link href="/login" className="font-semibold text-accent hover:underline">
+            Back to log in
           </Link>
         </p>
       </div>
