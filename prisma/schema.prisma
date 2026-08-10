@@ -28,9 +28,20 @@ model User {
   dateOfBirth DateTime?
   sex         Sex?
 
-  workoutLogs WorkoutLog[]
-  programs    Program[]
-  sessions    Session[]
+  workoutLogs    WorkoutLog[]
+  programs       Program[]
+  sessions       Session[]
+  bodyWeightLogs BodyWeightLog[]
+}
+
+model BodyWeightLog {
+  id        String   @id @default(cuid())
+  weightKg  Float
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Session {

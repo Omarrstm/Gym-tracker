@@ -17,7 +17,11 @@ export default function BodyStatsForm({
   const [state, formAction, pending] = useActionState(updateBodyStats, undefined);
 
   return (
-    <form action={formAction} key={state?.success} className="relative z-10 flex flex-col gap-3">
+    <form
+      action={formAction}
+      key={`${state?.success ?? ""}-${initialWeightKg}`}
+      className="relative z-10 flex flex-col gap-3"
+    >
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1">
           <span className="text-[11px] font-semibold tracking-wide text-muted uppercase">

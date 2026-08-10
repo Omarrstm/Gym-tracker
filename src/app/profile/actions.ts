@@ -72,11 +72,47 @@ export async function updateBodyStats(
   }
 
   const { userId } = await verifySession();
-  await prisma.user.update({
-    where: { id: userId },
-    data: { heightCm, weightKg, dateOfBirth, sex: sex as "MALE" | "FEMALE" },
-  });
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: userId },
+      data: { heightCm, weightKg, dateOfBirth, sex: sex as "MALE" | "FEMALE" },
+    }),
+    prisma.bodyWeightLog.create({ data: { userId, weightKg } }),
+  ]);
 
   revalidatePath("/profile");
   return { success: "Body stats updated." };
+}
+
+export async function logBodyWeight(weightKg: number) {
+  if (!Number.isFinite(weightKg) || weightKg < 20 || weightKg > 400) {
+    throw new Error("Enter a valid weight in kg.");
+  }
+
+  const { userId } = await verifySession();
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: userId }, data: { weightKg } }),
+    prisma.bodyWeightLog.create({ data: { userId, weightKg } }),
+  ]);
+
+  revalidatePath("/profile");
+}
+
+export async function deleteBodyWeightLog(logId: string) {
+  const { userId } = await verifySession();
+  const log = await prisma.bodyWeightLog.findFirst({ where: { id: logId, userId } });
+  if (!log) throw new Error("Entry not found.");
+
+  await prisma.bodyWeightLog.delete({ where: { id: logId } });
+
+  const latest = await prisma.bodyWeightLog.findFirst({
+    where: { userId },
+    orderBy: { date: "desc" },
+  });
+  await prisma.user.update({
+    where: { id: userId },
+    data: { weightKg: latest?.weightKg ?? null },
+  });
+
+  revalidatePath("/profile");
 }

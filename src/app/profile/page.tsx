@@ -1,14 +1,22 @@
 import Link from "next/link";
+import prisma from "@/lib/prisma";
 import { getUser } from "@/lib/dal";
 import { calculateAge, calculateBMI, calculateBMR, bmiCategory } from "@/lib/bodyStats";
 import NameForm from "./NameForm";
 import PasswordForm from "./PasswordForm";
 import BodyStatsForm from "./BodyStatsForm";
+import BodyWeightLogForm from "./BodyWeightLogForm";
+import BodyWeightHistory from "./BodyWeightHistory";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
   const user = await getUser();
+
+  const bodyWeightLogs = await prisma.bodyWeightLog.findMany({
+    where: { userId: user.id },
+    orderBy: { date: "asc" },
+  });
 
   const hasBodyStats = user.heightCm != null && user.weightKg != null && user.dateOfBirth != null && user.sex != null;
   const bmi = hasBodyStats ? calculateBMI(user.weightKg!, user.heightCm!) : null;
@@ -78,6 +86,22 @@ export default async function ProfilePage() {
             initialDateOfBirth={user.dateOfBirth ? user.dateOfBirth.toISOString().slice(0, 10) : null}
             initialSex={user.sex}
           />
+        </section>
+
+        <section className="card-shine rounded-2xl p-6">
+          <h2 className="relative z-10 mb-4 font-display text-[15px] tracking-wide text-text uppercase">
+            Weight History
+          </h2>
+          <div className="relative z-10 flex flex-col gap-3">
+            <BodyWeightHistory
+              logs={bodyWeightLogs.map((l) => ({
+                id: l.id,
+                weightKg: l.weightKg,
+                date: l.date.toISOString(),
+              }))}
+            />
+            <BodyWeightLogForm />
+          </div>
         </section>
       </div>
     </div>
