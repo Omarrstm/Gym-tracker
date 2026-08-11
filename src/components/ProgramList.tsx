@@ -3,7 +3,13 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createProgram, deleteProgram, renameProgram, setActiveProgram } from "@/app/program/actions";
+import {
+  createProgram,
+  deleteProgram,
+  duplicateProgram,
+  renameProgram,
+  setActiveProgram,
+} from "@/app/program/actions";
 
 type ProgramSummary = {
   id: string;
@@ -14,6 +20,7 @@ type ProgramSummary = {
 };
 
 function ProgramRow({ program }: { program: ProgramSummary }) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(program.name);
@@ -54,6 +61,18 @@ function ProgramRow({ program }: { program: ProgramSummary }) {
         await deleteProgram(program.id);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Couldn't delete this program.");
+      }
+    });
+  }
+
+  function handleDuplicate() {
+    setError(null);
+    startTransition(async () => {
+      try {
+        const { id } = await duplicateProgram(program.id);
+        router.push(`/program/${id}`);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Couldn't duplicate this program.");
       }
     });
   }
@@ -122,6 +141,13 @@ function ProgramRow({ program }: { program: ProgramSummary }) {
             className="text-[12px] font-semibold text-muted underline-offset-2 hover:text-accent hover:underline"
           >
             Rename
+          </button>
+          <button
+            onClick={handleDuplicate}
+            disabled={isPending}
+            className="text-[12px] font-semibold text-muted underline-offset-2 hover:text-accent hover:underline disabled:opacity-50"
+          >
+            Duplicate
           </button>
           <button
             onClick={handleDelete}

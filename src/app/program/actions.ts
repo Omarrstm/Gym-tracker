@@ -59,6 +59,45 @@ export async function setActiveProgram(programId: string) {
   revalidatePath("/");
 }
 
+export async function duplicateProgram(programId: string) {
+  const { userId } = await verifySession();
+  await requireOwnedProgram(programId, userId);
+
+  const source = await prisma.program.findUniqueOrThrow({
+    where: { id: programId },
+    include: {
+      days: {
+        include: { exercises: { orderBy: { order: "asc" } } },
+      },
+    },
+  });
+
+  const copy = await prisma.program.create({
+    data: {
+      userId,
+      name: `${source.name} (Copy)`,
+      isActive: false,
+      days: {
+        create: source.days.map((day) => ({
+          dayOfWeek: day.dayOfWeek,
+          exercises: {
+            create: day.exercises.map((ex) => ({
+              exerciseId: ex.exerciseId,
+              order: ex.order,
+              targetWeight: ex.targetWeight,
+              targetSets: ex.targetSets,
+              targetReps: ex.targetReps,
+            })),
+          },
+        })),
+      },
+    },
+  });
+
+  revalidatePath("/program");
+  return { id: copy.id };
+}
+
 export async function deleteProgram(programId: string) {
   const { userId } = await verifySession();
   const program = await requireOwnedProgram(programId, userId);
