@@ -130,6 +130,7 @@ model Program {
 model ProgramDay {
   id        String    @id @default(cuid())
   dayOfWeek DayOfWeek
+  notes     String?
 
   programId String
   program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)

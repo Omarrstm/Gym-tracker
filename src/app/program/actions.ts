@@ -153,6 +153,27 @@ export async function addProgramExercise(input: {
   revalidatePath("/");
 }
 
+export async function updateProgramDayNotes(input: {
+  programId: string;
+  dayOfWeek: DayOfWeek;
+  notes: string;
+}) {
+  const { programId, dayOfWeek } = input;
+  const notes = input.notes.trim() || null;
+
+  const { userId } = await verifySession();
+  await requireOwnedProgram(programId, userId);
+
+  await prisma.programDay.upsert({
+    where: { programId_dayOfWeek: { programId, dayOfWeek } },
+    update: { notes },
+    create: { programId, dayOfWeek, notes },
+  });
+
+  revalidatePath(`/program/${programId}`);
+  revalidatePath("/");
+}
+
 export async function updateProgramExercise(input: {
   programExerciseId: string;
   weight: number;

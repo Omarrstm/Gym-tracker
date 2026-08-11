@@ -111,7 +111,7 @@ export default async function Home() {
         </div>
       </header>
 
-      <TodayWorkout items={items} hasProgram={program !== null} />
+      <TodayWorkout items={items} hasProgram={program !== null} dayNote={programDay?.notes ?? null} />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
   addProgramExercise,
   moveProgramExercise,
   removeProgramExercise,
+  updateProgramDayNotes,
   updateProgramExercise,
 } from "@/app/program/actions";
 
@@ -304,16 +305,99 @@ function AddExerciseRow({
   );
 }
 
+function DayNotes({
+  programId,
+  dayOfWeek,
+  notes,
+}: {
+  programId: string;
+  dayOfWeek: DayOfWeek;
+  notes: string | null;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(notes ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleSave() {
+    setError(null);
+    startTransition(async () => {
+      try {
+        await updateProgramDayNotes({ programId, dayOfWeek, notes: value });
+        setEditing(false);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Couldn't save this note.");
+      }
+    });
+  }
+
+  if (editing) {
+    return (
+      <div className="mb-3 rounded-xl border border-border bg-surface-2 p-3">
+        <textarea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="e.g. Deload week — keep it light"
+          rows={2}
+          autoFocus
+          className="w-full resize-none rounded-lg border border-border bg-surface px-2.5 py-2 text-[13px] text-text outline-none focus-visible:border-accent"
+        />
+        {error && <p className="mt-2 text-[12px] text-red-400">{error}</p>}
+        <div className="mt-2 flex items-center gap-2">
+          <button
+            onClick={handleSave}
+            disabled={isPending}
+            className="rounded-lg bg-accent px-3.5 py-1.5 text-[12px] font-bold text-bg uppercase disabled:opacity-50"
+          >
+            Save
+          </button>
+          <button
+            onClick={() => {
+              setEditing(false);
+              setValue(notes ?? "");
+            }}
+            className="text-[12px] font-semibold text-muted hover:text-text"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (notes) {
+    return (
+      <button
+        onClick={() => setEditing(true)}
+        className="mb-3 w-full rounded-xl border border-accent/30 bg-accent-soft px-3 py-2 text-left text-[13px] leading-relaxed text-accent"
+      >
+        {notes}
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setEditing(true)}
+      className="mb-3 text-[12px] font-semibold text-muted underline-offset-2 hover:text-accent hover:underline"
+    >
+      + Add Note
+    </button>
+  );
+}
+
 export default function ProgramDayCard({
   programId,
   dayOfWeek,
   dayLabel,
+  notes,
   exercises,
   allExercises,
 }: {
   programId: string;
   dayOfWeek: DayOfWeek;
   dayLabel: string;
+  notes: string | null;
   exercises: ProgramExerciseItem[];
   allExercises: ExerciseOption[];
 }) {
@@ -322,6 +406,9 @@ export default function ProgramDayCard({
       <h2 className="relative z-10 mb-3 font-display text-[15px] tracking-wide text-text uppercase">
         {dayLabel}
       </h2>
+      <div className="relative z-10">
+        <DayNotes programId={programId} dayOfWeek={dayOfWeek} notes={notes} />
+      </div>
       <div className="relative z-10 flex flex-col gap-2">
         {exercises.length === 0 && (
           <p className="text-[12.5px] text-muted">Rest day &mdash; no exercises planned.</p>

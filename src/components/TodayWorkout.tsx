@@ -173,9 +173,11 @@ function LogSetRow({ item }: { item: TodayItem }) {
 export default function TodayWorkout({
   items,
   hasProgram,
+  dayNote,
 }: {
   items: TodayItem[];
   hasProgram: boolean;
+  dayNote?: string | null;
 }) {
   if (!hasProgram) {
     return (
@@ -196,6 +198,11 @@ export default function TodayWorkout({
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 px-4 py-16 text-center">
+        {dayNote && (
+          <p className="rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-[13px] leading-relaxed text-accent">
+            {dayNote}
+          </p>
+        )}
         <p className="text-[14px] text-muted">Rest day &mdash; nothing scheduled for today.</p>
         <Link
           href="/exercises"
@@ -209,6 +216,11 @@ export default function TodayWorkout({
 
   return (
     <div className="flex flex-col gap-2 px-4 pt-4 pb-6">
+      {dayNote && (
+        <p className="rounded-xl border border-accent/30 bg-accent-soft px-3.5 py-2.5 text-[13px] leading-relaxed text-accent">
+          {dayNote}
+        </p>
+      )}
       {items.map((item) => (
         <LogSetRow key={item.id} item={item} />
       ))}
