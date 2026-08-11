@@ -57,6 +57,7 @@ export async function setActiveProgram(programId: string) {
 
   revalidatePath("/program");
   revalidatePath("/");
+  revalidatePath("/workout");
 }
 
 export async function duplicateProgram(programId: string) {
@@ -111,21 +112,31 @@ export async function deleteProgram(programId: string) {
 
   revalidatePath("/program");
   revalidatePath("/");
+  revalidatePath("/workout");
 }
 
 export async function addProgramExercise(input: {
   programId: string;
   dayOfWeek: DayOfWeek;
   exerciseId: string;
-  weight: number;
-  sets: number;
-  reps: number;
+  weight?: number | null;
+  sets?: number | null;
+  reps?: number | null;
 }) {
-  const { programId, dayOfWeek, exerciseId, weight, sets, reps } = input;
+  const { programId, dayOfWeek, exerciseId } = input;
+  const weight = input.weight ?? null;
+  const sets = input.sets ?? null;
+  const reps = input.reps ?? null;
 
-  if (!Number.isFinite(weight) || weight < 0) throw new Error("Enter a valid weight.");
-  if (!Number.isInteger(sets) || sets < 1) throw new Error("Enter a valid number of sets.");
-  if (!Number.isInteger(reps) || reps < 1) throw new Error("Enter a valid number of reps.");
+  if (weight !== null && (!Number.isFinite(weight) || weight < 0)) {
+    throw new Error("Enter a valid weight.");
+  }
+  if (sets !== null && (!Number.isInteger(sets) || sets < 1)) {
+    throw new Error("Enter a valid number of sets.");
+  }
+  if (reps !== null && (!Number.isInteger(reps) || reps < 1)) {
+    throw new Error("Enter a valid number of reps.");
+  }
 
   const { userId } = await verifySession();
   await requireOwnedProgram(programId, userId);
@@ -151,6 +162,29 @@ export async function addProgramExercise(input: {
 
   revalidatePath(`/program/${programId}`);
   revalidatePath("/");
+  revalidatePath("/workout");
+}
+
+export async function updateProgramDayLabel(input: {
+  programId: string;
+  dayOfWeek: DayOfWeek;
+  label: string;
+}) {
+  const { programId, dayOfWeek } = input;
+  const label = input.label.trim() || null;
+
+  const { userId } = await verifySession();
+  await requireOwnedProgram(programId, userId);
+
+  await prisma.programDay.upsert({
+    where: { programId_dayOfWeek: { programId, dayOfWeek } },
+    update: { label },
+    create: { programId, dayOfWeek, label },
+  });
+
+  revalidatePath(`/program/${programId}`);
+  revalidatePath("/");
+  revalidatePath("/workout");
 }
 
 export async function updateProgramDayNotes(input: {
@@ -172,19 +206,29 @@ export async function updateProgramDayNotes(input: {
 
   revalidatePath(`/program/${programId}`);
   revalidatePath("/");
+  revalidatePath("/workout");
 }
 
 export async function updateProgramExercise(input: {
   programExerciseId: string;
-  weight: number;
-  sets: number;
-  reps: number;
+  weight?: number | null;
+  sets?: number | null;
+  reps?: number | null;
 }) {
-  const { programExerciseId, weight, sets, reps } = input;
+  const { programExerciseId } = input;
+  const weight = input.weight ?? null;
+  const sets = input.sets ?? null;
+  const reps = input.reps ?? null;
 
-  if (!Number.isFinite(weight) || weight < 0) throw new Error("Enter a valid weight.");
-  if (!Number.isInteger(sets) || sets < 1) throw new Error("Enter a valid number of sets.");
-  if (!Number.isInteger(reps) || reps < 1) throw new Error("Enter a valid number of reps.");
+  if (weight !== null && (!Number.isFinite(weight) || weight < 0)) {
+    throw new Error("Enter a valid weight.");
+  }
+  if (sets !== null && (!Number.isInteger(sets) || sets < 1)) {
+    throw new Error("Enter a valid number of sets.");
+  }
+  if (reps !== null && (!Number.isInteger(reps) || reps < 1)) {
+    throw new Error("Enter a valid number of reps.");
+  }
 
   const { userId } = await verifySession();
   const pe = await requireOwnedProgramExercise(programExerciseId, userId);
@@ -196,6 +240,7 @@ export async function updateProgramExercise(input: {
 
   revalidatePath(`/program/${pe.programDay.programId}`);
   revalidatePath("/");
+  revalidatePath("/workout");
 }
 
 export async function removeProgramExercise(programExerciseId: string) {
@@ -215,6 +260,7 @@ export async function removeProgramExercise(programExerciseId: string) {
 
   revalidatePath(`/program/${pe.programDay.programId}`);
   revalidatePath("/");
+  revalidatePath("/workout");
 }
 
 export async function moveProgramExercise(programExerciseId: string, direction: "up" | "down") {
@@ -237,4 +283,6 @@ export async function moveProgramExercise(programExerciseId: string, direction: 
   ]);
 
   revalidatePath(`/program/${pe.programDay.programId}`);
+  revalidatePath("/");
+  revalidatePath("/workout");
 }

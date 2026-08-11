@@ -59,18 +59,15 @@ function AddToProgramForm({ exerciseId }: { exerciseId: string }) {
 
   function handleSubmit() {
     setError(null);
-    const weightNum = Number(weight);
-    const setsNum = Number(sets);
-    const repsNum = Number(reps);
 
     startTransition(async () => {
       try {
         await addExerciseToProgram({
           exerciseId,
           dayOfWeek: day,
-          weight: weightNum,
-          sets: setsNum,
-          reps: repsNum,
+          weight: weight === "" ? null : Number(weight),
+          sets: sets === "" ? null : Number(sets),
+          reps: reps === "" ? null : Number(reps),
         });
         setSuccessDay(day);
       } catch (e) {
@@ -82,7 +79,8 @@ function AddToProgramForm({ exerciseId }: { exerciseId: string }) {
   if (successDay) {
     return (
       <div className="mt-3 rounded-xl border border-accent bg-accent-soft px-3.5 py-3 text-[13px] font-semibold text-accent">
-        Added to {dayLabels[successDay]} &mdash; {weight} kg &times; {sets} sets &times; {reps} reps
+        Added to {dayLabels[successDay]}
+        {weight && sets && reps ? ` — ${weight} kg × ${sets} sets × ${reps} reps` : ""}
       </div>
     );
   }
@@ -117,7 +115,10 @@ function AddToProgramForm({ exerciseId }: { exerciseId: string }) {
         ))}
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2">
+      <p className="mt-3 text-[11px] text-muted">
+        Optional &mdash; add a target now, or leave blank and fill it in later.
+      </p>
+      <div className="mt-1.5 grid grid-cols-3 gap-2">
         <label className="flex flex-col gap-1">
           <span className="text-[10px] font-semibold tracking-wide text-muted uppercase">
             Weight (kg)
@@ -162,7 +163,7 @@ function AddToProgramForm({ exerciseId }: { exerciseId: string }) {
 
       <button
         onClick={handleSubmit}
-        disabled={isPending || !weight || !sets || !reps}
+        disabled={isPending}
         className="mt-3 w-full rounded-xl bg-accent py-2.5 text-center text-[13px] font-bold tracking-wide text-bg uppercase disabled:opacity-50"
       >
         {isPending ? "Saving..." : "Save"}

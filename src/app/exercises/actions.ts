@@ -8,15 +8,24 @@ import type { DayOfWeek, MuscleGroup } from "@/generated/prisma/client";
 export async function addExerciseToProgram(input: {
   exerciseId: string;
   dayOfWeek: DayOfWeek;
-  weight: number;
-  sets: number;
-  reps: number;
+  weight?: number | null;
+  sets?: number | null;
+  reps?: number | null;
 }) {
-  const { exerciseId, dayOfWeek, weight, sets, reps } = input;
+  const { exerciseId, dayOfWeek } = input;
+  const weight = input.weight ?? null;
+  const sets = input.sets ?? null;
+  const reps = input.reps ?? null;
 
-  if (!Number.isFinite(weight) || weight < 0) throw new Error("Enter a valid weight.");
-  if (!Number.isInteger(sets) || sets < 1) throw new Error("Enter a valid number of sets.");
-  if (!Number.isInteger(reps) || reps < 1) throw new Error("Enter a valid number of reps.");
+  if (weight !== null && (!Number.isFinite(weight) || weight < 0)) {
+    throw new Error("Enter a valid weight.");
+  }
+  if (sets !== null && (!Number.isInteger(sets) || sets < 1)) {
+    throw new Error("Enter a valid number of sets.");
+  }
+  if (reps !== null && (!Number.isInteger(reps) || reps < 1)) {
+    throw new Error("Enter a valid number of reps.");
+  }
 
   const { userId } = await verifySession();
 

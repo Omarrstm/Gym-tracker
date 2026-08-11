@@ -2,11 +2,12 @@
 
 import { useState, useTransition } from "react";
 import type { DayOfWeek, MuscleGroup } from "@/generated/prisma/client";
-import { muscleGroupLabels } from "@/lib/muscleGroups";
+import ExerciseCombobox from "@/components/ExerciseCombobox";
 import {
   addProgramExercise,
   moveProgramExercise,
   removeProgramExercise,
+  updateProgramDayLabel,
   updateProgramDayNotes,
   updateProgramExercise,
 } from "@/app/program/actions";
@@ -14,12 +15,22 @@ import {
 type ProgramExerciseItem = {
   id: string;
   exercise: { id: string; name: string; muscleGroup: MuscleGroup };
-  targetWeight: number;
-  targetSets: number;
-  targetReps: number;
+  targetWeight: number | null;
+  targetSets: number | null;
+  targetReps: number | null;
 };
 
 type ExerciseOption = { id: string; name: string; muscleGroup: MuscleGroup };
+
+function targetLabel(item: ProgramExerciseItem): string | null {
+  if (item.targetWeight == null && item.targetSets == null && item.targetReps == null) {
+    return null;
+  }
+  const weight = item.targetWeight ?? "—";
+  const sets = item.targetSets ?? "—";
+  const reps = item.targetReps ?? "—";
+  return `${weight} kg × ${sets} × ${reps}`;
+}
 
 function ExerciseRow({
   item,
@@ -32,9 +43,9 @@ function ExerciseRow({
 }) {
   const [isPending, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
-  const [weight, setWeight] = useState(String(item.targetWeight));
-  const [sets, setSets] = useState(String(item.targetSets));
-  const [reps, setReps] = useState(String(item.targetReps));
+  const [weight, setWeight] = useState(item.targetWeight != null ? String(item.targetWeight) : "");
+  const [sets, setSets] = useState(item.targetSets != null ? String(item.targetSets) : "");
+  const [reps, setReps] = useState(item.targetReps != null ? String(item.targetReps) : "");
   const [error, setError] = useState<string | null>(null);
 
   function handleSave() {
@@ -43,9 +54,9 @@ function ExerciseRow({
       try {
         await updateProgramExercise({
           programExerciseId: item.id,
-          weight: Number(weight),
-          sets: Number(sets),
-          reps: Number(reps),
+          weight: weight === "" ? null : Number(weight),
+          sets: sets === "" ? null : Number(sets),
+          reps: reps === "" ? null : Number(reps),
         });
         setEditing(false);
       } catch (e) {
@@ -70,6 +81,7 @@ function ExerciseRow({
     return (
       <div className="rounded-xl border border-border bg-surface-2 p-3">
         <p className="text-[14px] font-semibold text-text">{item.exercise.name}</p>
+        <p className="mt-1 text-[11px] text-muted">Leave blank if you haven&rsquo;t decided yet.</p>
         <div className="mt-2 grid grid-cols-3 gap-2">
           <label className="flex flex-col gap-1">
             <span className="text-[10px] font-semibold tracking-wide text-muted uppercase">
@@ -134,6 +146,8 @@ function ExerciseRow({
     );
   }
 
+  const label = targetLabel(item);
+
   return (
     <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5">
       <div className="flex flex-col gap-0.5">
@@ -157,9 +171,7 @@ function ExerciseRow({
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-[14px] font-semibold text-text">{item.exercise.name}</p>
-        <p className="text-[12px] text-muted">
-          {item.targetWeight} kg &times; {item.targetSets} &times; {item.targetReps}
-        </p>
+        <p className="text-[12px] text-muted">{label ?? "No target set"}</p>
       </div>
 
       <button
@@ -189,7 +201,7 @@ function AddExerciseRow({
   options: ExerciseOption[];
 }) {
   const [open, setOpen] = useState(false);
-  const [exerciseId, setExerciseId] = useState(options[0]?.id ?? "");
+  const [exerciseId, setExerciseId] = useState("");
   const [weight, setWeight] = useState("");
   const [sets, setSets] = useState("");
   const [reps, setReps] = useState("");
@@ -204,10 +216,11 @@ function AddExerciseRow({
           programId,
           dayOfWeek,
           exerciseId,
-          weight: Number(weight),
-          sets: Number(sets),
-          reps: Number(reps),
+          weight: weight === "" ? null : Number(weight),
+          sets: sets === "" ? null : Number(sets),
+          reps: reps === "" ? null : Number(reps),
         });
+        setExerciseId("");
         setWeight("");
         setSets("");
         setReps("");
@@ -231,19 +244,12 @@ function AddExerciseRow({
 
   return (
     <div className="rounded-xl border border-border bg-surface-2 p-3">
-      <select
-        value={exerciseId}
-        onChange={(e) => setExerciseId(e.target.value)}
-        className="w-full rounded-lg border border-border bg-surface px-2.5 py-2 text-[14px] text-text outline-none focus-visible:border-accent"
-      >
-        {options.map((o) => (
-          <option key={o.id} value={o.id}>
-            {o.name} &middot; {muscleGroupLabels[o.muscleGroup]}
-          </option>
-        ))}
-      </select>
+      <ExerciseCombobox options={options} value={exerciseId} onChange={setExerciseId} />
 
-      <div className="mt-2 grid grid-cols-3 gap-2">
+      <p className="mt-2.5 text-[11px] text-muted">
+        Optional &mdash; add a target now, or leave blank and fill it in later.
+      </p>
+      <div className="mt-1.5 grid grid-cols-3 gap-2">
         <label className="flex flex-col gap-1">
           <span className="text-[10px] font-semibold tracking-wide text-muted uppercase">
             Weight (kg)
@@ -289,7 +295,7 @@ function AddExerciseRow({
       <div className="mt-2.5 flex items-center gap-2">
         <button
           onClick={handleAdd}
-          disabled={isPending || !weight || !sets || !reps}
+          disabled={isPending || !exerciseId}
           className="rounded-lg bg-accent px-3.5 py-1.5 text-[12px] font-bold text-bg uppercase disabled:opacity-50"
         >
           Add
@@ -302,6 +308,85 @@ function AddExerciseRow({
         </button>
       </div>
     </div>
+  );
+}
+
+function DayLabelEditor({
+  programId,
+  dayOfWeek,
+  label,
+}: {
+  programId: string;
+  dayOfWeek: DayOfWeek;
+  label: string | null;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(label ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleSave() {
+    setError(null);
+    startTransition(async () => {
+      try {
+        await updateProgramDayLabel({ programId, dayOfWeek, label: value });
+        setEditing(false);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Couldn't save this name.");
+      }
+    });
+  }
+
+  if (editing) {
+    return (
+      <div className="mb-2 flex items-center gap-2">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="e.g. Leg Day"
+          autoFocus
+          className="min-w-0 flex-1 rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-[13px] text-text outline-none focus-visible:border-accent"
+        />
+        <button
+          onClick={handleSave}
+          disabled={isPending}
+          className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-[12px] font-bold text-bg uppercase disabled:opacity-50"
+        >
+          Save
+        </button>
+        <button
+          onClick={() => {
+            setEditing(false);
+            setValue(label ?? "");
+          }}
+          className="shrink-0 text-[12px] font-semibold text-muted hover:text-text"
+        >
+          Cancel
+        </button>
+        {error && <p className="text-[12px] text-red-400">{error}</p>}
+      </div>
+    );
+  }
+
+  if (label) {
+    return (
+      <button
+        onClick={() => setEditing(true)}
+        className="mb-2 text-[13px] font-semibold text-accent hover:underline"
+      >
+        {label}
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setEditing(true)}
+      className="mb-2 text-[12px] font-semibold text-muted underline-offset-2 hover:text-accent hover:underline"
+    >
+      + Name This Day
+    </button>
   );
 }
 
@@ -390,6 +475,7 @@ export default function ProgramDayCard({
   programId,
   dayOfWeek,
   dayLabel,
+  label,
   notes,
   exercises,
   allExercises,
@@ -397,16 +483,18 @@ export default function ProgramDayCard({
   programId: string;
   dayOfWeek: DayOfWeek;
   dayLabel: string;
+  label: string | null;
   notes: string | null;
   exercises: ProgramExerciseItem[];
   allExercises: ExerciseOption[];
 }) {
   return (
     <section className="card-shine rounded-2xl p-4">
-      <h2 className="relative z-10 mb-3 font-display text-[15px] tracking-wide text-text uppercase">
+      <h2 className="relative z-10 mb-1 font-display text-[15px] tracking-wide text-text uppercase">
         {dayLabel}
       </h2>
       <div className="relative z-10">
+        <DayLabelEditor programId={programId} dayOfWeek={dayOfWeek} label={label} />
         <DayNotes programId={programId} dayOfWeek={dayOfWeek} notes={notes} />
       </div>
       <div className="relative z-10 flex flex-col gap-2">

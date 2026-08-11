@@ -31,6 +31,7 @@ export default async function ProgramDetailPage(props: PageProps<"/program/[id]"
 
   const exercisesByDay = new Map(days.map((d) => [d.dayOfWeek, d.exercises]));
   const notesByDay = new Map(days.map((d) => [d.dayOfWeek, d.notes]));
+  const labelByDay = new Map(days.map((d) => [d.dayOfWeek, d.label]));
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
@@ -60,6 +61,7 @@ export default async function ProgramDetailPage(props: PageProps<"/program/[id]"
             programId={program.id}
             dayOfWeek={day}
             dayLabel={dayLabels[day]}
+            label={labelByDay.get(day) ?? null}
             notes={notesByDay.get(day) ?? null}
             exercises={exercisesByDay.get(day) ?? []}
             allExercises={allExercises}

@@ -9,9 +9,9 @@ import { logWorkoutSet } from "@/app/actions";
 type TodayItem = {
   id: string;
   exercise: { id: string; name: string; muscleGroup: MuscleGroup; imageUrl: string | null };
-  targetWeight: number;
-  targetSets: number;
-  targetReps: number;
+  targetWeight: number | null;
+  targetSets: number | null;
+  targetReps: number | null;
   loggedCount: number;
 };
 
@@ -50,9 +50,9 @@ function CheckIcon() {
 
 function LogSetRow({ item }: { item: TodayItem }) {
   const [open, setOpen] = useState(false);
-  const [weight, setWeight] = useState(String(item.targetWeight));
-  const [sets, setSets] = useState(String(item.targetSets));
-  const [reps, setReps] = useState(String(item.targetReps));
+  const [weight, setWeight] = useState(item.targetWeight != null ? String(item.targetWeight) : "");
+  const [sets, setSets] = useState(item.targetSets != null ? String(item.targetSets) : "");
+  const [reps, setReps] = useState(item.targetReps != null ? String(item.targetReps) : "");
   const [error, setError] = useState<string | null>(null);
   const [justLogged, setJustLogged] = useState(false);
   const [newPR, setNewPR] = useState(false);
@@ -102,7 +102,9 @@ function LogSetRow({ item }: { item: TodayItem }) {
             </span>
           )}
           <span className="text-[12.5px] text-muted">
-            {item.targetWeight} kg &times; {item.targetSets} &times; {item.targetReps}
+            {item.targetWeight != null && item.targetSets != null && item.targetReps != null
+              ? `${item.targetWeight} kg × ${item.targetSets} × ${item.targetReps}`
+              : "No target set"}
           </span>
           {logged > 0 && (
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-bg">

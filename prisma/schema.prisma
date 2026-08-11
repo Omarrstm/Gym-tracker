@@ -130,6 +130,7 @@ model Program {
 model ProgramDay {
   id        String    @id @default(cuid())
   dayOfWeek DayOfWeek
+  label     String?
   notes     String?
 
   programId String
@@ -143,9 +144,9 @@ model ProgramDay {
 model ProgramExercise {
   id            String @id @default(cuid())
   order         Int
-  targetWeight  Float
-  targetSets    Int
-  targetReps    Int
+  targetWeight  Float?
+  targetSets    Int?
+  targetReps    Int?
 
   programDayId String
   programDay   ProgramDay @relation(fields: [programDayId], references: [id], onDelete: Cascade)
