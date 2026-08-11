@@ -61,6 +61,12 @@ export default async function HistoryPage() {
           >
             Programs
           </Link>
+          <Link
+            href="/history/prs"
+            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+          >
+            All PRs
+          </Link>
         </div>
       </header>
 
