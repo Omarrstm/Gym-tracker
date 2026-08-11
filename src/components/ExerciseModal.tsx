@@ -5,7 +5,7 @@ import Image from "next/image";
 import type { DayOfWeek, MuscleGroup } from "@/generated/prisma/client";
 import { muscleGroupLabels } from "@/lib/muscleGroups";
 import { dayLabels, dayOrder } from "@/lib/days";
-import { addExerciseToProgram } from "@/app/exercises/actions";
+import { addExerciseToProgram, deleteCustomExercise } from "@/app/exercises/actions";
 
 type Exercise = {
   id: string;
@@ -171,13 +171,54 @@ function AddToProgramForm({ exerciseId }: { exerciseId: string }) {
   );
 }
 
+function DeleteExerciseButton({ exerciseId, onClose }: { exerciseId: string; onClose: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleDelete() {
+    if (!confirming) {
+      setConfirming(true);
+      return;
+    }
+    setError(null);
+    startTransition(async () => {
+      try {
+        await deleteCustomExercise(exerciseId);
+        onClose();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Couldn't delete this exercise.");
+        setConfirming(false);
+      }
+    });
+  }
+
+  return (
+    <div className="mt-2">
+      <button
+        onClick={handleDelete}
+        onBlur={() => setConfirming(false)}
+        disabled={isPending}
+        className={`text-[12px] font-semibold underline-offset-2 hover:underline disabled:opacity-50 ${
+          confirming ? "text-red-400" : "text-muted hover:text-red-400"
+        }`}
+      >
+        {confirming ? "Confirm delete?" : "Delete custom exercise"}
+      </button>
+      {error && <p className="mt-1 text-[12px] text-red-400">{error}</p>}
+    </div>
+  );
+}
+
 export default function ExerciseModal({
   exercise,
   prWeight = null,
+  isOwner = false,
   onClose,
 }: {
   exercise: Exercise;
   prWeight?: number | null;
+  isOwner?: boolean;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -246,6 +287,7 @@ export default function ExerciseModal({
             <p className="mt-1.5 text-[13px] leading-relaxed text-muted">{exercise.description}</p>
           )}
           <AddToProgramForm exerciseId={exercise.id} />
+          {isOwner && <DeleteExerciseButton exerciseId={exercise.id} onClose={onClose} />}
         </div>
       </div>
     </div>

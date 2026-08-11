@@ -10,7 +10,15 @@ export default async function ExercisesPage() {
   const { userId } = await verifySession();
 
   const exercises = await prisma.exercise.findMany({
-    select: { id: true, name: true, muscleGroup: true, imageUrl: true, description: true },
+    where: { OR: [{ createdByUserId: null }, { createdByUserId: userId }] },
+    select: {
+      id: true,
+      name: true,
+      muscleGroup: true,
+      imageUrl: true,
+      description: true,
+      createdByUserId: true,
+    },
     orderBy: { name: "asc" },
   });
 
@@ -75,7 +83,7 @@ export default async function ExercisesPage() {
             </Link>
           </div>
         </header>
-        <ExercisePicker exercises={exercises} prByExercise={prByExercise} />
+        <ExercisePicker exercises={exercises} prByExercise={prByExercise} currentUserId={userId} />
       </div>
     </div>
   );

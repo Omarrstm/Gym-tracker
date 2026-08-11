@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import type { MuscleGroup } from "@/generated/prisma/client";
 import { muscleGroupLabels, muscleGroupOrder } from "@/lib/muscleGroups";
 import ExerciseModal from "@/components/ExerciseModal";
+import { createCustomExercise } from "@/app/exercises/actions";
 
 type Exercise = {
   id: string;
@@ -11,6 +12,7 @@ type Exercise = {
   muscleGroup: MuscleGroup;
   imageUrl: string | null;
   description: string | null;
+  createdByUserId: string | null;
 };
 
 function BarbellIcon() {
@@ -46,12 +48,110 @@ function SearchIcon() {
   );
 }
 
+function CreateExerciseForm({ defaultMuscleGroup }: { defaultMuscleGroup: MuscleGroup }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [muscleGroup, setMuscleGroup] = useState<MuscleGroup>(defaultMuscleGroup);
+  const [description, setDescription] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleCreate() {
+    setError(null);
+    startTransition(async () => {
+      try {
+        await createCustomExercise({ name, muscleGroup, description });
+        setName("");
+        setDescription("");
+        setOpen(false);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Couldn't create this exercise.");
+      }
+    });
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full rounded-xl border border-dashed border-border py-3 text-center text-[12px] font-semibold tracking-wide text-muted uppercase hover:border-accent hover:text-accent"
+      >
+        + Add Custom Exercise
+      </button>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-surface p-3.5">
+      <label className="flex flex-col gap-1">
+        <span className="text-[10px] font-semibold tracking-wide text-muted uppercase">Name</span>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoFocus
+          className="rounded-lg border border-border bg-surface-2 px-2.5 py-2 text-[14px] text-text outline-none focus-visible:border-accent"
+        />
+      </label>
+
+      <label className="mt-2 flex flex-col gap-1">
+        <span className="text-[10px] font-semibold tracking-wide text-muted uppercase">
+          Muscle Group
+        </span>
+        <select
+          value={muscleGroup}
+          onChange={(e) => setMuscleGroup(e.target.value as MuscleGroup)}
+          className="rounded-lg border border-border bg-surface-2 px-2.5 py-2 text-[14px] text-text outline-none focus-visible:border-accent"
+        >
+          {muscleGroupOrder.map((group) => (
+            <option key={group} value={group}>
+              {muscleGroupLabels[group]}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="mt-2 flex flex-col gap-1">
+        <span className="text-[10px] font-semibold tracking-wide text-muted uppercase">
+          Description (optional)
+        </span>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={2}
+          className="resize-none rounded-lg border border-border bg-surface-2 px-2.5 py-2 text-[14px] text-text outline-none focus-visible:border-accent"
+        />
+      </label>
+
+      {error && <p className="mt-2 text-[12px] text-red-400">{error}</p>}
+
+      <div className="mt-2.5 flex items-center gap-2">
+        <button
+          onClick={handleCreate}
+          disabled={isPending || name.trim().length < 2}
+          className="rounded-lg bg-accent px-3.5 py-1.5 text-[12px] font-bold text-bg uppercase disabled:opacity-50"
+        >
+          {isPending ? "Adding..." : "Add Exercise"}
+        </button>
+        <button
+          onClick={() => setOpen(false)}
+          className="text-[12px] font-semibold text-muted hover:text-text"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function ExercisePicker({
   exercises,
   prByExercise = {},
+  currentUserId,
 }: {
   exercises: Exercise[];
   prByExercise?: Record<string, number>;
+  currentUserId: string;
 }) {
   const [query, setQuery] = useState("");
   const [activeGroup, setActiveGroup] = useState<MuscleGroup | "ALL">("ALL");
@@ -124,6 +224,7 @@ export default function ExercisePicker({
                 <p className="text-[14.5px] font-semibold text-text">{exercise.name}</p>
                 <p className="text-[11px] uppercase tracking-wide text-muted">
                   {muscleGroupLabels[exercise.muscleGroup]}
+                  {exercise.createdByUserId && " · Custom"}
                 </p>
               </span>
               {prByExercise[exercise.id] !== undefined && (
@@ -134,12 +235,17 @@ export default function ExercisePicker({
             </button>
           ))
         )}
+
+        <CreateExerciseForm
+          defaultMuscleGroup={activeGroup === "ALL" ? muscleGroupOrder[0] : activeGroup}
+        />
       </div>
 
       {selected && (
         <ExerciseModal
           exercise={selected}
           prWeight={prByExercise[selected.id] ?? null}
+          isOwner={selected.createdByUserId === currentUserId}
           onClose={() => setSelected(null)}
         />
       )}
