@@ -67,6 +67,12 @@ export default async function HistoryPage() {
           >
             All PRs
           </Link>
+          <Link
+            href="/stats"
+            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+          >
+            Stats
+          </Link>
         </div>
       </header>
 
