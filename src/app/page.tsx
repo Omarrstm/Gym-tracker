@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { getUser } from "@/lib/dal";
@@ -65,59 +66,79 @@ export default async function Home() {
     })) ?? [];
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
-      <header className="flex items-start justify-between border-b border-border px-4 pt-6 pb-4">
-        <div>
-          <p className="font-display text-[13px] tracking-[0.12em] text-accent uppercase">
-            {dayLabels[today]} &middot; {todayLabel}
-          </p>
-          <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
-            Today&rsquo;s Workout
-          </h1>
-        </div>
-        <div className="mt-1 flex flex-col items-end gap-1.5">
-          <Link
-            href="/exercises"
-            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-          >
-            Exercise Library
-          </Link>
-          <Link
-            href="/program"
-            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-          >
-            Programs
-          </Link>
-          <Link
-            href="/history"
-            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-          >
-            History
-          </Link>
-          <Link
-            href="/stats"
-            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-          >
-            Stats
-          </Link>
-          <Link
-            href="/profile"
-            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-          >
-            {user.name}
-          </Link>
-          <form action={logout}>
-            <button
-              type="submit"
+    <div className="relative min-h-screen w-full flex-1">
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <Image
+          src="/backgrounds/gym-hero.jpg"
+          alt=""
+          fill
+          sizes="100vw"
+          className="scale-105 object-cover object-top blur-[2px]"
+          priority
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(22,21,26,0.6) 0%, rgba(22,21,26,0.8) 35%, var(--color-bg) 62%)",
+          }}
+        />
+      </div>
+
+      <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col">
+        <header className="flex items-start justify-between border-b border-border/70 px-4 pt-6 pb-4">
+          <div>
+            <p className="font-display text-[13px] tracking-[0.12em] text-accent uppercase">
+              {dayLabels[today]} &middot; {todayLabel}
+            </p>
+            <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
+              Today&rsquo;s Workout
+            </h1>
+          </div>
+          <div className="mt-1 flex flex-col items-end gap-1.5">
+            <Link
+              href="/exercises"
               className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
             >
-              Log Out
-            </button>
-          </form>
-        </div>
-      </header>
+              Exercise Library
+            </Link>
+            <Link
+              href="/program"
+              className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+            >
+              Programs
+            </Link>
+            <Link
+              href="/history"
+              className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+            >
+              History
+            </Link>
+            <Link
+              href="/stats"
+              className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+            >
+              Stats
+            </Link>
+            <Link
+              href="/profile"
+              className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+            >
+              {user.name}
+            </Link>
+            <form action={logout}>
+              <button
+                type="submit"
+                className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+              >
+                Log Out
+              </button>
+            </form>
+          </div>
+        </header>
 
-      <TodayWorkout items={items} hasProgram={program !== null} dayNote={programDay?.notes ?? null} />
+        <TodayWorkout items={items} hasProgram={program !== null} dayNote={programDay?.notes ?? null} />
+      </div>
     </div>
   );
 }
