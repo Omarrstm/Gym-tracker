@@ -1,3 +1,6 @@
+import "server-only";
+import prisma from "@/lib/prisma";
+
 // All date bucketing here operates in UTC consistently, since WorkoutLog.date
 // is stored as an absolute UTC timestamp and dayKey extracts the UTC calendar
 // date. Mixing in local-time methods (setHours, getDay, setDate) would shift
@@ -5,6 +8,11 @@
 
 export function dayKey(d: Date): string {
   return d.toISOString().slice(0, 10);
+}
+
+export function formatVolume(kg: number): string {
+  if (kg >= 1000) return `${(kg / 1000).toFixed(1)}t`;
+  return `${Math.round(kg)} kg`;
 }
 
 export function computeDailyVolumes(
@@ -56,6 +64,30 @@ export function sumVolumeInRange(
     cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
   return total;
+}
+
+export async function getStreakAndWeekVolume(
+  userId: string,
+  now: Date
+): Promise<{ streak: number; thisWeekVolume: number }> {
+  const ninetyDaysAgo = new Date(now);
+  ninetyDaysAgo.setUTCDate(now.getUTCDate() - 89);
+  ninetyDaysAgo.setUTCHours(0, 0, 0, 0);
+
+  const logs = await prisma.workoutLog.findMany({
+    where: { userId, date: { gte: ninetyDaysAgo } },
+    select: { date: true, weight: true, sets: true, reps: true },
+  });
+
+  const dailyVolumes = computeDailyVolumes(logs);
+  const streak = computeStreak(dailyVolumes, now);
+
+  const thisWeekStart = getWeekStart(now);
+  const nextWeekStart = new Date(thisWeekStart);
+  nextWeekStart.setUTCDate(nextWeekStart.getUTCDate() + 7);
+  const thisWeekVolume = sumVolumeInRange(dailyVolumes, thisWeekStart, nextWeekStart);
+
+  return { streak, thisWeekVolume };
 }
 
 export type HeatmapDay = { date: Date; dateKey: string; volume: number; level: 0 | 1 | 2 | 3 | 4 };

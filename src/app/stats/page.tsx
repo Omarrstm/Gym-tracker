@@ -7,6 +7,7 @@ import {
   buildHeatmapGrid,
   computeDailyVolumes,
   computeStreak,
+  formatVolume,
   getWeekStart,
   sumVolumeInRange,
 } from "@/lib/stats";
@@ -14,11 +15,6 @@ import {
 export const dynamic = "force-dynamic";
 
 const dayInitials = ["S", "M", "T", "W", "T", "F", "S"];
-
-function formatVolume(kg: number): string {
-  if (kg >= 1000) return `${(kg / 1000).toFixed(1)}t`;
-  return `${Math.round(kg)} kg`;
-}
 
 const levelClass: Record<0 | 1 | 2 | 3 | 4, string> = {
   0: "bg-surface-2",

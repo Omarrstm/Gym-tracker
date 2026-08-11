@@ -30,6 +30,7 @@ export async function logWorkoutSet(input: {
   });
 
   revalidatePath("/");
+  revalidatePath("/workout");
 
   const previousBestWeight = previousBest._max.weight;
   const isNewPR = previousBestWeight !== null && weight > previousBestWeight;
@@ -56,6 +57,7 @@ export async function updateWorkoutLog(input: {
   await prisma.workoutLog.update({ where: { id: logId }, data: { weight, sets, reps } });
 
   revalidatePath("/");
+  revalidatePath("/workout");
   revalidatePath("/history");
   revalidatePath(`/history/${log.exerciseId}`);
 }
@@ -68,6 +70,7 @@ export async function deleteWorkoutLog(logId: string) {
   await prisma.workoutLog.delete({ where: { id: logId } });
 
   revalidatePath("/");
+  revalidatePath("/workout");
   revalidatePath("/history");
   revalidatePath(`/history/${log.exerciseId}`);
 }

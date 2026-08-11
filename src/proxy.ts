@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const protectedRoutes = ["/", "/exercises", "/history", "/profile", "/program", "/stats"];
+const protectedRoutes = ["/", "/exercises", "/history", "/profile", "/program", "/stats", "/workout"];
 const publicRoutes = ["/login", "/signup"];
 
 function isUnder(path: string, route: string) {

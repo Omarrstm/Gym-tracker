@@ -1,69 +1,25 @@
 import Image from "next/image";
 import Link from "next/link";
-import prisma from "@/lib/prisma";
 import { getUser } from "@/lib/dal";
 import { logout } from "@/app/actions";
-import { dayLabels, getTodayDayOfWeek } from "@/lib/days";
-import TodayWorkout from "@/components/TodayWorkout";
+import { dayLabels } from "@/lib/days";
+import { getTodaysWorkout } from "@/lib/todayWorkout";
+import { formatVolume, getStreakAndWeekVolume } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const user = await getUser();
   const userId = user.id;
-  const today = getTodayDayOfWeek();
   const todayLabel = new Date().toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
   });
 
-  const program = await prisma.program.findFirst({
-    where: { userId, isActive: true },
-  });
+  const { today, program, programDay, items } = await getTodaysWorkout(userId);
+  const { streak, thisWeekVolume } = await getStreakAndWeekVolume(userId, new Date());
 
-  const programDay = program
-    ? await prisma.programDay.findUnique({
-        where: { programId_dayOfWeek: { programId: program.id, dayOfWeek: today } },
-        include: {
-          exercises: {
-            orderBy: { order: "asc" },
-            include: {
-              exercise: {
-                select: { id: true, name: true, muscleGroup: true, imageUrl: true },
-              },
-            },
-          },
-        },
-      })
-    : null;
-
-  const exerciseIds = programDay?.exercises.map((pe) => pe.exercise.id) ?? [];
-
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(startOfDay);
-  endOfDay.setDate(endOfDay.getDate() + 1);
-
-  const todaysLogs =
-    exerciseIds.length > 0
-      ? await prisma.workoutLog.findMany({
-          where: {
-            userId,
-            exerciseId: { in: exerciseIds },
-            date: { gte: startOfDay, lt: endOfDay },
-          },
-        })
-      : [];
-
-  const items =
-    programDay?.exercises.map((pe) => ({
-      id: pe.id,
-      exercise: pe.exercise,
-      targetWeight: pe.targetWeight,
-      targetSets: pe.targetSets,
-      targetReps: pe.targetReps,
-      loggedCount: todaysLogs.filter((log) => log.exerciseId === pe.exercise.id).length,
-    })) ?? [];
+  const loggedCount = items.filter((item) => item.loggedCount > 0).length;
 
   return (
     <div className="relative min-h-screen w-full flex-1">
@@ -92,7 +48,7 @@ export default async function Home() {
               {dayLabels[today]} &middot; {todayLabel}
             </p>
             <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
-              Today&rsquo;s Workout
+              Overview
             </h1>
           </div>
           <div className="mt-1 flex flex-col items-end gap-1.5">
@@ -137,7 +93,98 @@ export default async function Home() {
           </div>
         </header>
 
-        <TodayWorkout items={items} hasProgram={program !== null} dayNote={programDay?.notes ?? null} />
+        <div className="flex flex-col gap-3 px-4 pt-4 pb-6">
+          {program && items.length > 0 && (
+            <Link
+              href="/workout"
+              className="flex items-center justify-between rounded-2xl bg-accent px-5 py-4 text-bg shadow-lg"
+            >
+              <span>
+                <p className="text-[11px] font-bold tracking-wide uppercase opacity-70">
+                  {items.length} {items.length === 1 ? "exercise" : "exercises"} &middot;{" "}
+                  {loggedCount}/{items.length} logged
+                </p>
+                <p className="font-display text-[22px] leading-none tracking-wide uppercase">
+                  Start Your {programDay?.label || `${dayLabels[today]} Workout`}
+                </p>
+              </span>
+              <span className="font-display text-[22px]">&rarr;</span>
+            </Link>
+          )}
+
+          {program && items.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-border px-5 py-4">
+              {programDay?.notes && (
+                <p className="mb-2 rounded-lg border border-accent/30 bg-accent-soft px-3 py-2 text-[13px] leading-relaxed text-accent">
+                  {programDay.notes}
+                </p>
+              )}
+              <p className="text-[13px] text-muted">
+                Rest day &mdash; nothing scheduled for today.
+              </p>
+              <Link
+                href="/exercises"
+                className="mt-1 inline-block text-[13px] font-semibold text-accent underline-offset-2 hover:underline"
+              >
+                Log something anyway
+              </Link>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-border bg-surface-2 px-4 py-3">
+              <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
+                Streak
+              </p>
+              <p className="font-display text-[24px] leading-none text-text tabular-nums">
+                {streak}
+              </p>
+              <p className="mt-1 text-[12px] text-accent">{streak === 1 ? "day" : "days"}</p>
+            </div>
+            <div className="rounded-xl border border-border bg-surface-2 px-4 py-3">
+              <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
+                This Week
+              </p>
+              <p className="font-display text-[24px] leading-none text-text tabular-nums">
+                {formatVolume(thisWeekVolume)}
+              </p>
+              <p className="mt-1 text-[12px] text-accent">volume lifted</p>
+            </div>
+          </div>
+
+          {program ? (
+            <Link
+              href={`/program/${program.id}`}
+              className="flex items-center justify-between rounded-xl border border-border bg-surface-2 px-4 py-3"
+            >
+              <span>
+                <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
+                  Active Program
+                </p>
+                <p className="text-[14px] font-semibold text-text">{program.name}</p>
+              </span>
+              <span className="text-[12px] font-semibold text-accent">View &rarr;</span>
+            </Link>
+          ) : (
+            <Link
+              href="/program"
+              className="flex items-center justify-between rounded-xl border border-dashed border-border px-4 py-3"
+            >
+              <span className="text-[13px] text-muted">No active program yet</span>
+              <span className="text-[12px] font-semibold text-accent">Create one &rarr;</span>
+            </Link>
+          )}
+
+          {!program && (
+            <p className="px-1 text-[13px] text-muted">
+              Once you build a program, your daily workout will show up here.{" "}
+              <Link href="/exercises" className="font-semibold text-accent hover:underline">
+                Browse exercises
+              </Link>{" "}
+              to get started.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
