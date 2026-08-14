@@ -7,7 +7,7 @@ const resend = apiKey ? new Resend(apiKey) : null;
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   if (!resend) throw new Error("RESEND_API_KEY is not set");
 
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: "Gym Tracker <onboarding@resend.dev>",
     to,
     subject: "Reset your Gym Tracker password",
@@ -28,12 +28,14 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
       </div>
     `,
   });
+
+  if (error) throw new Error(error.message);
 }
 
 export async function sendCoachInviteEmail(to: string, coachName: string, inviteUrl: string) {
   if (!resend) throw new Error("RESEND_API_KEY is not set");
 
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: "Gym Tracker <onboarding@resend.dev>",
     to,
     subject: `${coachName} invited you to coach on Gym Tracker`,
@@ -54,4 +56,6 @@ export async function sendCoachInviteEmail(to: string, coachName: string, invite
       </div>
     `,
   });
+
+  if (error) throw new Error(error.message);
 }
