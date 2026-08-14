@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/dal";
 import { muscleGroupLabels } from "@/lib/muscleGroups";
-import WeightTrendChart from "@/components/WeightTrendChart";
+import Exercise1RMChart from "@/components/Exercise1RMChart";
 import SessionRow from "@/components/SessionRow";
 
 export const dynamic = "force-dynamic";
@@ -67,8 +67,13 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
             </p>
           </div>
 
-          <div className="card-shine mx-4 mt-3 rounded-xl px-4 py-4">
-            <WeightTrendChart data={logs.map((l) => ({ date: l.date.toISOString(), weight: l.weight }))} />
+          <div className="mx-4 mt-5">
+            <p className="mb-2 text-[11px] font-semibold tracking-wide text-muted uppercase">
+              Estimated 1RM
+            </p>
+            <Exercise1RMChart
+              logs={logs.map((l) => ({ date: l.date.toISOString(), weight: l.weight, reps: l.reps }))}
+            />
           </div>
 
           <div className="flex flex-col gap-2 px-4 pt-4 pb-6">

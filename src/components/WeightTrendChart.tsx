@@ -22,7 +22,13 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default function WeightTrendChart({ data }: { data: Point[] }) {
+export default function WeightTrendChart({
+  data,
+  ariaLabel = "Weight trend",
+}: {
+  data: Point[];
+  ariaLabel?: string;
+}) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   const plotWidth = WIDTH - PAD_LEFT - PAD_RIGHT;
@@ -63,7 +69,7 @@ export default function WeightTrendChart({ data }: { data: Point[] }) {
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className="w-full"
         role="img"
-        aria-label={`Weight trend, latest ${last.weight} kg`}
+        aria-label={`${ariaLabel}, latest ${last.weight} kg`}
       >
         {yTicks.map((tick) => (
           <g key={tick}>
