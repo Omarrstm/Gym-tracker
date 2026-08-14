@@ -1,14 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg: #16151a;
-  --color-surface: #201e24;
-  --color-surface-2: #29262e;
-  --color-border: #322e37;
-  --color-accent: #d6d6da;
-  --color-accent-soft: #d6d6da26;
-  --color-text: #eceef0;
-  --color-muted: #93949a;
+  --color-bg: #0a0e17;
+  --color-surface: #10141f;
+  --color-surface-2: #161c2c;
+  --color-border: #232a3d;
+  --color-accent: #34d399;
+  --color-accent-soft: #34d39926;
+  --color-accent-blue: #5b9cff;
+  --color-accent-blue-soft: #5b9cff26;
+  --color-text: #eaf1f5;
+  --color-muted: #8a93a8;
+  --color-grid-line: #5b9cff0d;
 }
 
 @theme inline {
@@ -18,6 +21,8 @@
   --color-border: var(--color-border);
   --color-accent: var(--color-accent);
   --color-accent-soft: var(--color-accent-soft);
+  --color-accent-blue: var(--color-accent-blue);
+  --color-accent-blue-soft: var(--color-accent-blue-soft);
   --color-text: var(--color-text);
   --color-muted: var(--color-muted);
   --font-display: var(--font-display);
@@ -25,7 +30,11 @@
 }
 
 body {
-  background: var(--color-bg);
+  background-color: var(--color-bg);
+  background-image:
+    linear-gradient(var(--color-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid-line) 1px, transparent 1px);
+  background-size: 42px 42px;
   color: var(--color-text);
   font-family: var(--font-body), Arial, Helvetica, sans-serif;
 }

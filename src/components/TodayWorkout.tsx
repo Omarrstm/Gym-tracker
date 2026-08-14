@@ -5,6 +5,9 @@ import { useState, useTransition } from "react";
 import type { MuscleGroup } from "@/generated/prisma/client";
 import { muscleGroupLabels } from "@/lib/muscleGroups";
 import { logWorkoutSet } from "@/app/actions";
+import RestTimer from "@/components/RestTimer";
+
+const REST_DURATION_SECONDS = 90;
 
 type TodayItem = {
   id: string;
@@ -48,7 +51,7 @@ function CheckIcon() {
   );
 }
 
-function LogSetRow({ item }: { item: TodayItem }) {
+function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => void }) {
   const [open, setOpen] = useState(false);
   const [weight, setWeight] = useState(item.targetWeight != null ? String(item.targetWeight) : "");
   const [sets, setSets] = useState(item.targetSets != null ? String(item.targetSets) : "");
@@ -77,6 +80,7 @@ function LogSetRow({ item }: { item: TodayItem }) {
         setJustLogged(true);
         setOpen(false);
         if (result.isNewPR) setNewPR(true);
+        onSetLogged();
       } catch (e) {
         setError(e instanceof Error ? e.message : "Couldn't log this set.");
       }
@@ -181,6 +185,8 @@ export default function TodayWorkout({
   hasProgram: boolean;
   dayNote?: string | null;
 }) {
+  const [restStartedAt, setRestStartedAt] = useState<number | null>(null);
+
   if (!hasProgram) {
     return (
       <div className="flex flex-col items-center gap-3 px-4 py-16 text-center">
@@ -217,15 +223,22 @@ export default function TodayWorkout({
   }
 
   return (
-    <div className="flex flex-col gap-2 px-4 pt-4 pb-6">
+    <div className="flex flex-col gap-2 px-4 pt-4 pb-24">
       {dayNote && (
         <p className="rounded-xl border border-accent/30 bg-accent-soft px-3.5 py-2.5 text-[13px] leading-relaxed text-accent">
           {dayNote}
         </p>
       )}
       {items.map((item) => (
-        <LogSetRow key={item.id} item={item} />
+        <LogSetRow key={item.id} item={item} onSetLogged={() => setRestStartedAt(Date.now())} />
       ))}
+      {restStartedAt !== null && (
+        <RestTimer
+          key={restStartedAt}
+          duration={REST_DURATION_SECONDS}
+          onDismiss={() => setRestStartedAt(null)}
+        />
+      )}
     </div>
   );
 }
