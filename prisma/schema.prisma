@@ -35,6 +35,13 @@ model User {
   bodyWeightLogs     BodyWeightLog[]
   passwordResetTokens PasswordResetToken[]
   customExercises    Exercise[]
+
+  coachProfile      CoachProfile?
+  coachOfLinks      CoachAthlete[] @relation("CoachOfLink")
+  athleteOfLinks    CoachAthlete[] @relation("AthleteOfLink")
+  sentCoachInvites  CoachInvite[]  @relation("SentCoachInvites")
+  sentMessages      Message[]      @relation("SentMessages")
+  assignedPrograms  Program[]      @relation("CoachAssignedPrograms")
 }
 
 model PasswordResetToken {
@@ -128,6 +135,9 @@ model Program {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  assignedByCoachId String?
+  assignedByCoach   User?   @relation("CoachAssignedPrograms", fields: [assignedByCoachId], references: [id], onDelete: SetNull)
+
   days ProgramDay[]
 }
 
@@ -157,4 +167,86 @@ model ProgramExercise {
 
   exerciseId String
   exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+}
+
+enum CoachLinkStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  REVOKED
+}
+
+enum CoachLinkSource {
+  EMAIL_INVITE
+  JOIN_CODE
+  DIRECTORY_REQUEST
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
+model CoachProfile {
+  id          String   @id @default(cuid())
+  bio         String?
+  specialties String[] @default([])
+  joinCode    String   @unique
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CoachAthlete {
+  id          String          @id @default(cuid())
+  status      CoachLinkStatus @default(PENDING)
+  source      CoachLinkSource
+  createdAt   DateTime        @default(now())
+  respondedAt DateTime?
+
+  coachId   String
+  coach     User   @relation("CoachOfLink", fields: [coachId], references: [id], onDelete: Cascade)
+  athleteId String
+  athlete   User   @relation("AthleteOfLink", fields: [athleteId], references: [id], onDelete: Cascade)
+
+  messages Message[]
+
+  @@unique([coachId, athleteId])
+  @@index([coachId, status])
+  @@index([athleteId, status])
+}
+
+model CoachInvite {
+  id         String       @id @default(cuid())
+  tokenHash  String       @unique
+  email      String
+  status     InviteStatus @default(PENDING)
+  expiresAt  DateTime
+  createdAt  DateTime     @default(now())
+  acceptedAt DateTime?
+
+  coachId String
+  coach   User   @relation("SentCoachInvites", fields: [coachId], references: [id], onDelete: Cascade)
+
+  @@index([coachId])
+  @@index([email])
+}
+
+model Message {
+  id        String    @id @default(cuid())
+  body      String
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  coachAthleteId String
+  coachAthlete   CoachAthlete @relation(fields: [coachAthleteId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([coachAthleteId, createdAt])
 }

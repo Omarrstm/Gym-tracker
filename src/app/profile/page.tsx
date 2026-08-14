@@ -1,6 +1,7 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { getUser } from "@/lib/dal";
+import { getCoachProfile } from "@/lib/coachDal";
 import { calculateAge, calculateBMI, calculateBMR, bmiCategory } from "@/lib/bodyStats";
 import NameForm from "./NameForm";
 import PasswordForm from "./PasswordForm";
@@ -14,6 +15,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
   const user = await getUser();
+  const coachProfile = await getCoachProfile(user.id);
 
   const bodyWeightLogs = await prisma.bodyWeightLog.findMany({
     where: { userId: user.id },
@@ -44,6 +46,32 @@ export default async function ProfilePage() {
       </header>
 
       <div className="flex flex-col gap-4">
+        <section className="card-shine rounded-2xl p-6">
+          <h2 className="relative z-10 mb-4 font-display text-[15px] tracking-wide text-text uppercase">
+            Coaching
+          </h2>
+          <div className="relative z-10 flex flex-col gap-2">
+            <Link
+              href="/coaches"
+              className="text-[13px] font-semibold text-accent hover:underline"
+            >
+              Find a Coach
+            </Link>
+            <Link
+              href="/coaches/mine"
+              className="text-[13px] font-semibold text-accent hover:underline"
+            >
+              My Coaches
+            </Link>
+            <Link
+              href={coachProfile ? "/coach" : "/coach/profile"}
+              className="text-[13px] font-semibold text-accent hover:underline"
+            >
+              {coachProfile ? "Coach Dashboard" : "Become a Coach"}
+            </Link>
+          </div>
+        </section>
+
         <section className="card-shine rounded-2xl p-6">
           <h2 className="relative z-10 mb-4 font-display text-[15px] tracking-wide text-text uppercase">
             Account

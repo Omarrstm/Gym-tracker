@@ -29,3 +29,29 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
     `,
   });
 }
+
+export async function sendCoachInviteEmail(to: string, coachName: string, inviteUrl: string) {
+  if (!resend) throw new Error("RESEND_API_KEY is not set");
+
+  await resend.emails.send({
+    from: "Gym Tracker <onboarding@resend.dev>",
+    to,
+    subject: `${coachName} invited you to coach on Gym Tracker`,
+    html: `
+      <div style="font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #16151a;">
+        <p style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6b6b73; margin: 0 0 4px;">Gym Tracker</p>
+        <h1 style="font-size: 22px; margin: 0 0 16px;">${coachName} invited you to be coached</h1>
+        <p style="font-size: 14px; line-height: 1.6; color: #333;">
+          ${coachName} wants to coach you on Gym Tracker — assigning programs, tracking your progress,
+          and messaging you directly. This invite expires in 7 days.
+        </p>
+        <p style="margin: 28px 0;">
+          <a href="${inviteUrl}" style="background: #16151a; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 14px; display: inline-block;">
+            Accept Invite
+          </a>
+        </p>
+        <p style="font-size: 12px; color: #8a8a8a; word-break: break-all;">${inviteUrl}</p>
+      </div>
+    `,
+  });
+}

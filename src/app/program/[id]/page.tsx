@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/dal";
+import { findViewableProgram } from "@/lib/coachDal";
 import { dayLabels, dayOrder } from "@/lib/days";
 import ProgramDayCard from "@/components/ProgramDayCard";
 
@@ -11,8 +12,11 @@ export default async function ProgramDetailPage(props: PageProps<"/program/[id]"
   const { id } = await props.params;
   const { userId } = await verifySession();
 
-  const program = await prisma.program.findFirst({ where: { id, userId } });
+  const program = await findViewableProgram(id, userId);
   if (!program) notFound();
+
+  const isCoachView = program.userId !== userId;
+  const backHref = isCoachView ? `/coach/athletes/${program.userId}` : "/program";
 
   const days = await prisma.programDay.findMany({
     where: { programId: id },
@@ -37,10 +41,10 @@ export default async function ProgramDetailPage(props: PageProps<"/program/[id]"
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
       <header className="border-b border-border px-4 pt-6 pb-4">
         <Link
-          href="/program"
+          href={backHref}
           className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
         >
-          &larr; Programs
+          &larr; {isCoachView ? "Athlete" : "Programs"}
         </Link>
         <div className="mt-2 flex items-center gap-2">
           <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
@@ -49,6 +53,11 @@ export default async function ProgramDetailPage(props: PageProps<"/program/[id]"
           {program.isActive && (
             <span className="rounded-full border border-accent bg-accent-soft px-2 py-0.5 text-[10px] font-bold tracking-wide text-accent uppercase">
               Active
+            </span>
+          )}
+          {program.assignedByCoachId && (
+            <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-bold tracking-wide text-muted uppercase">
+              Coach Assigned
             </span>
           )}
         </div>

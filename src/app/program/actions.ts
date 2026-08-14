@@ -11,12 +11,30 @@ async function requireOwnedProgram(programId: string, userId: string) {
   return program;
 }
 
-async function requireOwnedProgramExercise(programExerciseId: string, userId: string) {
+// Grants access to a program's owner (the athlete) as well as the coach who
+// assigned it, so long as the coach<->athlete link is still ACCEPTED. Used to
+// gate structure edits (rename/days/exercises); lifecycle actions like
+// activate/delete/duplicate stay athlete-only via requireOwnedProgram above.
+async function requireProgramAccess(programId: string, userId: string) {
+  const program = await prisma.program.findFirst({ where: { id: programId } });
+  if (!program) throw new Error("Program not found.");
+  if (program.userId === userId) return program;
+  if (program.assignedByCoachId === userId) {
+    const link = await prisma.coachAthlete.findUnique({
+      where: { coachId_athleteId: { coachId: userId, athleteId: program.userId } },
+    });
+    if (link?.status === "ACCEPTED") return program;
+  }
+  throw new Error("Program not found.");
+}
+
+async function requireProgramExerciseAccess(programExerciseId: string, userId: string) {
   const programExercise = await prisma.programExercise.findFirst({
-    where: { id: programExerciseId, programDay: { program: { userId } } },
+    where: { id: programExerciseId },
     include: { programDay: true },
   });
   if (!programExercise) throw new Error("Exercise entry not found.");
+  await requireProgramAccess(programExercise.programDay.programId, userId);
   return programExercise;
 }
 
@@ -39,7 +57,7 @@ export async function renameProgram(programId: string, name: string) {
   if (trimmed.length < 2) throw new Error("Enter a program name.");
 
   const { userId } = await verifySession();
-  await requireOwnedProgram(programId, userId);
+  await requireProgramAccess(programId, userId);
   await prisma.program.update({ where: { id: programId }, data: { name: trimmed } });
 
   revalidatePath("/program");
@@ -139,7 +157,7 @@ export async function addProgramExercise(input: {
   }
 
   const { userId } = await verifySession();
-  await requireOwnedProgram(programId, userId);
+  await requireProgramAccess(programId, userId);
 
   const programDay = await prisma.programDay.upsert({
     where: { programId_dayOfWeek: { programId, dayOfWeek } },
@@ -174,7 +192,7 @@ export async function updateProgramDayLabel(input: {
   const label = input.label.trim() || null;
 
   const { userId } = await verifySession();
-  await requireOwnedProgram(programId, userId);
+  await requireProgramAccess(programId, userId);
 
   await prisma.programDay.upsert({
     where: { programId_dayOfWeek: { programId, dayOfWeek } },
@@ -196,7 +214,7 @@ export async function updateProgramDayNotes(input: {
   const notes = input.notes.trim() || null;
 
   const { userId } = await verifySession();
-  await requireOwnedProgram(programId, userId);
+  await requireProgramAccess(programId, userId);
 
   await prisma.programDay.upsert({
     where: { programId_dayOfWeek: { programId, dayOfWeek } },
@@ -231,7 +249,7 @@ export async function updateProgramExercise(input: {
   }
 
   const { userId } = await verifySession();
-  const pe = await requireOwnedProgramExercise(programExerciseId, userId);
+  const pe = await requireProgramExerciseAccess(programExerciseId, userId);
 
   await prisma.programExercise.update({
     where: { id: programExerciseId },
@@ -245,7 +263,7 @@ export async function updateProgramExercise(input: {
 
 export async function removeProgramExercise(programExerciseId: string) {
   const { userId } = await verifySession();
-  const pe = await requireOwnedProgramExercise(programExerciseId, userId);
+  const pe = await requireProgramExerciseAccess(programExerciseId, userId);
 
   await prisma.$transaction(async (tx) => {
     await tx.programExercise.delete({ where: { id: programExerciseId } });
@@ -265,7 +283,7 @@ export async function removeProgramExercise(programExerciseId: string) {
 
 export async function moveProgramExercise(programExerciseId: string, direction: "up" | "down") {
   const { userId } = await verifySession();
-  const pe = await requireOwnedProgramExercise(programExerciseId, userId);
+  const pe = await requireProgramExerciseAccess(programExerciseId, userId);
 
   const siblings = await prisma.programExercise.findMany({
     where: { programDayId: pe.programDayId },

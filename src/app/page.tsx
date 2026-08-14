@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getUser } from "@/lib/dal";
+import { getCoachProfile } from "@/lib/coachDal";
 import { logout } from "@/app/actions";
 import { dayLabels } from "@/lib/days";
 import { getTodaysWorkout } from "@/lib/todayWorkout";
@@ -18,6 +19,7 @@ export default async function Home() {
 
   const { today, program, programDay, items } = await getTodaysWorkout(userId);
   const { streak, thisWeekVolume } = await getStreakAndWeekVolume(userId, new Date());
+  const coachProfile = await getCoachProfile(userId);
 
   const loggedCount = items.filter((item) => item.loggedCount > 0).length;
 
@@ -75,6 +77,24 @@ export default async function Home() {
               className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
             >
               Stats
+            </Link>
+            <Link
+              href="/coaches"
+              className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+            >
+              Coaches
+            </Link>
+            <Link
+              href="/coaches/mine"
+              className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+            >
+              My Coach
+            </Link>
+            <Link
+              href={coachProfile ? "/coach" : "/coach/profile"}
+              className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+            >
+              {coachProfile ? "Coach Dashboard" : "Become a Coach"}
             </Link>
             <Link
               href="/profile"

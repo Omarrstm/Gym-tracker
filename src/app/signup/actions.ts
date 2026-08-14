@@ -7,10 +7,17 @@ import { createSession } from "@/lib/session";
 
 export type AuthFormState = { error?: string } | undefined;
 
+function safeNext(next: FormDataEntryValue | null): string | null {
+  const value = String(next ?? "");
+  if (value.startsWith("/") && !value.startsWith("//")) return value;
+  return null;
+}
+
 export async function signup(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+  const next = safeNext(formData.get("next"));
 
   if (name.length < 2) return { error: "Enter your name." };
   if (!email.includes("@")) return { error: "Enter a valid email address." };
@@ -25,5 +32,5 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   });
 
   await createSession(user.id);
-  redirect("/");
+  redirect(next ?? "/");
 }
