@@ -85,6 +85,24 @@ export async function updateBodyStats(
   return { success: "Body stats updated." };
 }
 
+export async function updateRestTimer(
+  _prevState: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  const restTimerSeconds = Number(formData.get("restTimerSeconds"));
+
+  if (!Number.isInteger(restTimerSeconds) || restTimerSeconds < 15 || restTimerSeconds > 600) {
+    return { error: "Enter a rest time between 15 and 600 seconds." };
+  }
+
+  const { userId } = await verifySession();
+  await prisma.user.update({ where: { id: userId }, data: { restTimerSeconds } });
+
+  revalidatePath("/workout");
+  revalidatePath("/profile");
+  return { success: "Rest timer updated." };
+}
+
 export async function logBodyWeight(weightKg: number) {
   if (!Number.isFinite(weightKg) || weightKg < 20 || weightKg > 400) {
     throw new Error("Enter a valid weight in kg.");

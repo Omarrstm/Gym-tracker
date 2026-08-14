@@ -29,6 +29,7 @@ export const getUser = cache(async () => {
       weightKg: true,
       dateOfBirth: true,
       sex: true,
+      restTimerSeconds: true,
     },
   });
 });

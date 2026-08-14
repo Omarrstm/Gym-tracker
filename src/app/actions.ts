@@ -13,8 +13,9 @@ export async function logWorkoutSet(input: {
   reps: number;
   rir?: number | null;
   notes?: string | null;
+  isWarmup?: boolean;
 }) {
-  const { exerciseId, weight, sets, reps, rir, notes } = input;
+  const { exerciseId, weight, sets, reps, rir, notes, isWarmup } = input;
 
   if (!Number.isFinite(weight) || weight < 0) throw new Error("Enter a valid weight.");
   if (!Number.isInteger(sets) || sets < 1) throw new Error("Enter a valid number of sets.");
@@ -25,7 +26,7 @@ export async function logWorkoutSet(input: {
   const { userId } = await verifySession();
 
   const previousBest = await prisma.workoutLog.aggregate({
-    where: { userId, exerciseId },
+    where: { userId, exerciseId, isWarmup: false },
     _max: { weight: true },
   });
 
@@ -38,6 +39,7 @@ export async function logWorkoutSet(input: {
       reps,
       rir: rir ?? null,
       notes: notes?.trim() ? notes.trim() : null,
+      isWarmup: isWarmup ?? false,
     },
   });
 
@@ -45,7 +47,7 @@ export async function logWorkoutSet(input: {
   revalidatePath("/workout");
 
   const previousBestWeight = previousBest._max.weight;
-  const isNewPR = previousBestWeight !== null && weight > previousBestWeight;
+  const isNewPR = !isWarmup && previousBestWeight !== null && weight > previousBestWeight;
 
   return { isNewPR, previousBest: previousBestWeight };
 }
@@ -57,8 +59,9 @@ export async function updateWorkoutLog(input: {
   reps: number;
   rir?: number | null;
   notes?: string | null;
+  isWarmup?: boolean;
 }) {
-  const { logId, weight, sets, reps, rir, notes } = input;
+  const { logId, weight, sets, reps, rir, notes, isWarmup } = input;
 
   if (!Number.isFinite(weight) || weight < 0) throw new Error("Enter a valid weight.");
   if (!Number.isInteger(sets) || sets < 1) throw new Error("Enter a valid number of sets.");
@@ -72,7 +75,14 @@ export async function updateWorkoutLog(input: {
 
   await prisma.workoutLog.update({
     where: { id: logId },
-    data: { weight, sets, reps, rir: rir ?? null, notes: notes?.trim() ? notes.trim() : null },
+    data: {
+      weight,
+      sets,
+      reps,
+      rir: rir ?? null,
+      notes: notes?.trim() ? notes.trim() : null,
+      isWarmup: isWarmup ?? false,
+    },
   });
 
   revalidatePath("/");

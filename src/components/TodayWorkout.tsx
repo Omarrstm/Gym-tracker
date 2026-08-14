@@ -7,8 +7,6 @@ import { muscleGroupLabels } from "@/lib/muscleGroups";
 import { logWorkoutSet } from "@/app/actions";
 import RestTimer from "@/components/RestTimer";
 
-const REST_DURATION_SECONDS = 90;
-
 type TodayItem = {
   id: string;
   exercise: { id: string; name: string; muscleGroup: MuscleGroup; imageUrl: string | null };
@@ -59,6 +57,7 @@ function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => 
   const [showExtra, setShowExtra] = useState(false);
   const [rir, setRir] = useState("");
   const [notes, setNotes] = useState("");
+  const [isWarmup, setIsWarmup] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [justLogged, setJustLogged] = useState(false);
   const [newPR, setNewPR] = useState(false);
@@ -81,12 +80,14 @@ function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => 
           reps: repsNum,
           rir: rir === "" ? null : Number(rir),
           notes: notes.trim() === "" ? null : notes.trim(),
+          isWarmup,
         });
         setJustLogged(true);
         setOpen(false);
         setRir("");
         setNotes("");
         setShowExtra(false);
+        setIsWarmup(false);
         if (result.isNewPR) setNewPR(true);
         onSetLogged();
       } catch (e) {
@@ -169,6 +170,17 @@ function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => 
             </label>
           </div>
 
+          <button
+            onClick={() => setIsWarmup((v) => !v)}
+            className={`mt-2 w-fit rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wide uppercase ${
+              isWarmup
+                ? "border-accent-blue bg-accent-blue-soft text-accent-blue"
+                : "border-border bg-surface text-muted"
+            }`}
+          >
+            {isWarmup ? "Warm-up set" : "Mark as warm-up"}
+          </button>
+
           {showExtra ? (
             <div className="mt-2 grid grid-cols-3 gap-2">
               <label className="col-span-1 flex flex-col gap-1">
@@ -228,10 +240,12 @@ export default function TodayWorkout({
   items,
   hasProgram,
   dayNote,
+  restTimerSeconds = 90,
 }: {
   items: TodayItem[];
   hasProgram: boolean;
   dayNote?: string | null;
+  restTimerSeconds?: number;
 }) {
   const [restStartedAt, setRestStartedAt] = useState<number | null>(null);
 
@@ -283,7 +297,7 @@ export default function TodayWorkout({
       {restStartedAt !== null && (
         <RestTimer
           key={restStartedAt}
-          duration={REST_DURATION_SECONDS}
+          duration={restTimerSeconds}
           onDismiss={() => setRestStartedAt(null)}
         />
       )}

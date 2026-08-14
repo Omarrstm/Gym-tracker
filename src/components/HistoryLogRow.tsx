@@ -11,6 +11,7 @@ type Log = {
   weight: number;
   sets: number;
   reps: number;
+  isWarmup?: boolean;
   exercise: { id: string; name: string; muscleGroup: MuscleGroup };
 };
 
@@ -123,6 +124,11 @@ export default function HistoryLogRow({ log }: { log: Log }) {
         </p>
       </Link>
       <div className="relative z-10 flex shrink-0 items-center gap-3">
+        {log.isWarmup && (
+          <span className="rounded-full border border-accent-blue bg-accent-blue-soft px-2 py-0.5 text-[10px] font-bold tracking-wide text-accent-blue uppercase">
+            Warm-up
+          </span>
+        )}
         <span className="text-[13px] text-muted">
           {log.weight} kg &times; {log.sets} &times; {log.reps}
         </span>

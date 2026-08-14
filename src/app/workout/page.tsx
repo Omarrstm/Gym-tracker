@@ -32,7 +32,12 @@ export default async function WorkoutPage() {
         </h1>
       </header>
 
-      <TodayWorkout items={items} hasProgram={program !== null} dayNote={programDay?.notes ?? null} />
+      <TodayWorkout
+        items={items}
+        hasProgram={program !== null}
+        dayNote={programDay?.notes ?? null}
+        restTimerSeconds={user.restTimerSeconds}
+      />
     </div>
   );
 }

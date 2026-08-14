@@ -75,7 +75,7 @@ export async function getStreakAndWeekVolume(
   ninetyDaysAgo.setUTCHours(0, 0, 0, 0);
 
   const logs = await prisma.workoutLog.findMany({
-    where: { userId, date: { gte: ninetyDaysAgo } },
+    where: { userId, isWarmup: false, date: { gte: ninetyDaysAgo } },
     select: { date: true, weight: true, sets: true, reps: true },
   });
 

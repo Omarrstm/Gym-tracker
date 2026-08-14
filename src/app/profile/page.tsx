@@ -7,6 +7,7 @@ import PasswordForm from "./PasswordForm";
 import BodyStatsForm from "./BodyStatsForm";
 import BodyWeightLogForm from "./BodyWeightLogForm";
 import BodyWeightHistory from "./BodyWeightHistory";
+import RestTimerForm from "./RestTimerForm";
 import DeleteAccountSection from "./DeleteAccountSection";
 
 export const dynamic = "force-dynamic";
@@ -87,6 +88,13 @@ export default async function ProfilePage() {
             initialDateOfBirth={user.dateOfBirth ? user.dateOfBirth.toISOString().slice(0, 10) : null}
             initialSex={user.sex}
           />
+        </section>
+
+        <section className="card-shine rounded-2xl p-6">
+          <h2 className="relative z-10 mb-4 font-display text-[15px] tracking-wide text-text uppercase">
+            Rest Timer
+          </h2>
+          <RestTimerForm initialSeconds={user.restTimerSeconds} />
         </section>
 
         <section className="card-shine rounded-2xl p-6">

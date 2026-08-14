@@ -42,7 +42,7 @@ export default async function StatsPage() {
   ninetyDaysAgo.setUTCHours(0, 0, 0, 0);
 
   const logs = await prisma.workoutLog.findMany({
-    where: { userId, date: { gte: ninetyDaysAgo } },
+    where: { userId, isWarmup: false, date: { gte: ninetyDaysAgo } },
     select: {
       date: true,
       weight: true,

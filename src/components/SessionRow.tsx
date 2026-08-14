@@ -10,6 +10,7 @@ type Log = {
   reps: number;
   rir?: number | null;
   notes?: string | null;
+  isWarmup?: boolean;
   date: string;
 };
 
@@ -22,6 +23,7 @@ export default function SessionRow({ log, isPR = false }: { log: Log; isPR?: boo
   const [reps, setReps] = useState(String(log.reps));
   const [rir, setRir] = useState(log.rir != null ? String(log.rir) : "");
   const [notes, setNotes] = useState(log.notes ?? "");
+  const [isWarmup, setIsWarmup] = useState(log.isWarmup ?? false);
   const [error, setError] = useState<string | null>(null);
 
   const dateLabel = new Date(log.date).toLocaleDateString("en-US", {
@@ -41,6 +43,7 @@ export default function SessionRow({ log, isPR = false }: { log: Log; isPR?: boo
           reps: Number(reps),
           rir: rir === "" ? null : Number(rir),
           notes: notes.trim() === "" ? null : notes.trim(),
+          isWarmup,
         });
         setEditing(false);
       } catch (e) {
@@ -133,6 +136,16 @@ export default function SessionRow({ log, isPR = false }: { log: Log; isPR?: boo
             />
           </label>
         </div>
+        <button
+          onClick={() => setIsWarmup((v) => !v)}
+          className={`mt-2 w-fit rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wide uppercase ${
+            isWarmup
+              ? "border-accent-blue bg-accent-blue-soft text-accent-blue"
+              : "border-border bg-surface text-muted"
+          }`}
+        >
+          {isWarmup ? "Warm-up set" : "Mark as warm-up"}
+        </button>
         {error && <p className="mt-2 text-[12px] text-red-400">{error}</p>}
         <div className="mt-2.5 flex items-center gap-2">
           <button
@@ -161,6 +174,11 @@ export default function SessionRow({ log, isPR = false }: { log: Log; isPR?: boo
           {isPR && (
             <span className="rounded-full border border-accent bg-accent-soft px-2 py-0.5 text-[10px] font-bold tracking-wide text-accent uppercase">
               PR
+            </span>
+          )}
+          {log.isWarmup && (
+            <span className="rounded-full border border-accent-blue bg-accent-blue-soft px-2 py-0.5 text-[10px] font-bold tracking-wide text-accent-blue uppercase">
+              Warm-up
             </span>
           )}
           <span className="text-[13.5px] font-semibold text-text">

@@ -18,7 +18,7 @@ export default async function AllPRsPage() {
   const { userId } = await verifySession();
 
   const logs = await prisma.workoutLog.findMany({
-    where: { userId },
+    where: { userId, isWarmup: false },
     orderBy: { date: "asc" },
     include: { exercise: { select: { id: true, name: true, muscleGroup: true } } },
   });

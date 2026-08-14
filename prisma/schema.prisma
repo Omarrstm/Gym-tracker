@@ -18,15 +18,16 @@ enum Sex {
 }
 
 model User {
-  id          String    @id @default(cuid())
-  email       String    @unique
-  name        String?
-  password    String
-  createdAt   DateTime  @default(now())
-  heightCm    Float?
-  weightKg    Float?
-  dateOfBirth DateTime?
-  sex         Sex?
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String?
+  password         String
+  createdAt        DateTime  @default(now())
+  heightCm         Float?
+  weightKg         Float?
+  dateOfBirth      DateTime?
+  sex              Sex?
+  restTimerSeconds Int       @default(90)
 
   workoutLogs        WorkoutLog[]
   programs           Program[]
@@ -97,6 +98,7 @@ model WorkoutLog {
   reps      Int
   rir       Int?
   notes     String?
+  isWarmup  Boolean  @default(false)
   date      DateTime @default(now())
   createdAt DateTime @default(now())
 

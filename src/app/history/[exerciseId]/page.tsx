@@ -27,14 +27,15 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
     orderBy: { date: "asc" },
   });
 
-  const prWeight = logs.length > 0 ? Math.max(...logs.map((l) => l.weight)) : null;
-  const prLog = prWeight !== null ? logs.find((l) => l.weight === prWeight)! : null;
+  const workingLogs = logs.filter((l) => !l.isWarmup);
+  const prWeight = workingLogs.length > 0 ? Math.max(...workingLogs.map((l) => l.weight)) : null;
+  const prLog = prWeight !== null ? workingLogs.find((l) => l.weight === prWeight)! : null;
 
   const sessions: { key: string; date: Date; logs: typeof logs; volume: number }[] = [];
   for (const log of logs) {
     const key = dayKey(log.date);
     const session = sessions[sessions.length - 1]?.key === key ? sessions[sessions.length - 1] : null;
-    const volume = log.weight * log.sets * log.reps;
+    const volume = log.isWarmup ? 0 : log.weight * log.sets * log.reps;
     if (session) {
       session.logs.push(log);
       session.volume += volume;
@@ -72,16 +73,18 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
                 Personal Record
               </p>
               <p className="font-display text-[26px] leading-none text-text tabular-nums">
-                {prWeight} kg
+                {prWeight !== null ? `${prWeight} kg` : "—"}
               </p>
             </div>
-            <p className="text-[12px] text-muted">
-              {prLog!.date.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </p>
+            {prLog && (
+              <p className="text-[12px] text-muted">
+                {prLog.date.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+            )}
           </div>
 
           <div className="mx-4 mt-5">
@@ -89,7 +92,11 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
               Estimated 1RM
             </p>
             <Exercise1RMChart
-              logs={logs.map((l) => ({ date: l.date.toISOString(), weight: l.weight, reps: l.reps }))}
+              logs={workingLogs.map((l) => ({
+                date: l.date.toISOString(),
+                weight: l.weight,
+                reps: l.reps,
+              }))}
             />
           </div>
 
@@ -149,9 +156,10 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
                           reps: log.reps,
                           rir: log.rir,
                           notes: log.notes,
+                          isWarmup: log.isWarmup,
                           date: log.date.toISOString(),
                         }}
-                        isPR={log.id === prLog!.id}
+                        isPR={prLog !== null && log.id === prLog.id}
                       />
                     ))}
                   </div>
