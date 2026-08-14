@@ -11,12 +11,16 @@ export async function logWorkoutSet(input: {
   weight: number;
   sets: number;
   reps: number;
+  rir?: number | null;
+  notes?: string | null;
 }) {
-  const { exerciseId, weight, sets, reps } = input;
+  const { exerciseId, weight, sets, reps, rir, notes } = input;
 
   if (!Number.isFinite(weight) || weight < 0) throw new Error("Enter a valid weight.");
   if (!Number.isInteger(sets) || sets < 1) throw new Error("Enter a valid number of sets.");
   if (!Number.isInteger(reps) || reps < 1) throw new Error("Enter a valid number of reps.");
+  if (rir != null && (!Number.isInteger(rir) || rir < 0 || rir > 10))
+    throw new Error("RIR must be a whole number between 0 and 10.");
 
   const { userId } = await verifySession();
 
@@ -26,7 +30,15 @@ export async function logWorkoutSet(input: {
   });
 
   await prisma.workoutLog.create({
-    data: { userId, exerciseId, weight, sets, reps },
+    data: {
+      userId,
+      exerciseId,
+      weight,
+      sets,
+      reps,
+      rir: rir ?? null,
+      notes: notes?.trim() ? notes.trim() : null,
+    },
   });
 
   revalidatePath("/");
@@ -43,18 +55,25 @@ export async function updateWorkoutLog(input: {
   weight: number;
   sets: number;
   reps: number;
+  rir?: number | null;
+  notes?: string | null;
 }) {
-  const { logId, weight, sets, reps } = input;
+  const { logId, weight, sets, reps, rir, notes } = input;
 
   if (!Number.isFinite(weight) || weight < 0) throw new Error("Enter a valid weight.");
   if (!Number.isInteger(sets) || sets < 1) throw new Error("Enter a valid number of sets.");
   if (!Number.isInteger(reps) || reps < 1) throw new Error("Enter a valid number of reps.");
+  if (rir != null && (!Number.isInteger(rir) || rir < 0 || rir > 10))
+    throw new Error("RIR must be a whole number between 0 and 10.");
 
   const { userId } = await verifySession();
   const log = await prisma.workoutLog.findFirst({ where: { id: logId, userId } });
   if (!log) throw new Error("Log entry not found.");
 
-  await prisma.workoutLog.update({ where: { id: logId }, data: { weight, sets, reps } });
+  await prisma.workoutLog.update({
+    where: { id: logId },
+    data: { weight, sets, reps, rir: rir ?? null, notes: notes?.trim() ? notes.trim() : null },
+  });
 
   revalidatePath("/");
   revalidatePath("/workout");

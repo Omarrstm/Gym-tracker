@@ -95,6 +95,8 @@ model WorkoutLog {
   weight    Float
   sets      Int
   reps      Int
+  rir       Int?
+  notes     String?
   date      DateTime @default(now())
   createdAt DateTime @default(now())
 

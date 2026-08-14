@@ -56,6 +56,9 @@ function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => 
   const [weight, setWeight] = useState(item.targetWeight != null ? String(item.targetWeight) : "");
   const [sets, setSets] = useState(item.targetSets != null ? String(item.targetSets) : "");
   const [reps, setReps] = useState(item.targetReps != null ? String(item.targetReps) : "");
+  const [showExtra, setShowExtra] = useState(false);
+  const [rir, setRir] = useState("");
+  const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [justLogged, setJustLogged] = useState(false);
   const [newPR, setNewPR] = useState(false);
@@ -76,9 +79,14 @@ function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => 
           weight: weightNum,
           sets: setsNum,
           reps: repsNum,
+          rir: rir === "" ? null : Number(rir),
+          notes: notes.trim() === "" ? null : notes.trim(),
         });
         setJustLogged(true);
         setOpen(false);
+        setRir("");
+        setNotes("");
+        setShowExtra(false);
         if (result.isNewPR) setNewPR(true);
         onSetLogged();
       } catch (e) {
@@ -160,6 +168,46 @@ function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => 
               />
             </label>
           </div>
+
+          {showExtra ? (
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              <label className="col-span-1 flex flex-col gap-1">
+                <span className="text-[10px] font-semibold tracking-wide text-muted uppercase">
+                  RIR
+                </span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  max="10"
+                  step="1"
+                  value={rir}
+                  onChange={(e) => setRir(e.target.value)}
+                  placeholder="—"
+                  className="rounded-lg border border-border bg-surface px-2.5 py-2 text-[14px] text-text outline-none focus-visible:border-accent"
+                />
+              </label>
+              <label className="col-span-2 flex flex-col gap-1">
+                <span className="text-[10px] font-semibold tracking-wide text-muted uppercase">
+                  Notes
+                </span>
+                <input
+                  type="text"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Optional"
+                  className="rounded-lg border border-border bg-surface px-2.5 py-2 text-[14px] text-text outline-none focus-visible:border-accent"
+                />
+              </label>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowExtra(true)}
+              className="mt-2 text-[11px] font-semibold text-muted underline-offset-2 hover:text-accent hover:underline"
+            >
+              + Add RIR / notes
+            </button>
+          )}
 
           {error && <p className="mt-2 text-[12px] text-red-400">{error}</p>}
 

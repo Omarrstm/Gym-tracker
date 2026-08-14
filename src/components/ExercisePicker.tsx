@@ -166,6 +166,15 @@ export default function ExercisePicker({
     });
   }, [exercises, query, activeGroup]);
 
+  const sections = useMemo(() => {
+    return muscleGroupOrder
+      .map((group) => ({
+        group,
+        exercises: filtered.filter((exercise) => exercise.muscleGroup === group),
+      }))
+      .filter((section) => section.exercises.length > 0);
+  }, [filtered]);
+
   return (
     <div className="flex flex-col">
       <div className="mx-4 mt-4 flex items-center gap-2 rounded-[10px] border border-border bg-surface px-3.5 py-2.5 text-muted">
@@ -205,34 +214,43 @@ export default function ExercisePicker({
         ))}
       </div>
 
-      <div className="flex flex-col gap-2 px-4 pt-2 pb-6">
+      <div className="flex flex-col gap-5 px-4 pt-2 pb-6">
         {filtered.length === 0 ? (
           <p className="py-8 text-center text-[13px] text-muted">
             No exercises match &ldquo;{query}&rdquo;.
           </p>
         ) : (
-          filtered.map((exercise) => (
-            <button
-              key={exercise.id}
-              onClick={() => setSelected(exercise)}
-              className="card-shine card-pattern flex items-center gap-3 rounded-xl px-3.5 py-3 text-left"
-            >
-              <span className="relative z-10 flex h-[34px] w-[34px] flex-none items-center justify-center rounded-[9px] bg-surface-2 text-accent">
-                <BarbellIcon />
-              </span>
-              <span className="relative z-10 min-w-0 flex-1">
-                <p className="text-[14.5px] font-semibold text-text">{exercise.name}</p>
-                <p className="text-[11px] uppercase tracking-wide text-muted">
-                  {muscleGroupLabels[exercise.muscleGroup]}
-                  {exercise.createdByUserId && " · Custom"}
-                </p>
-              </span>
-              {prByExercise[exercise.id] !== undefined && (
-                <span className="relative z-10 shrink-0 text-[12px] text-muted">
-                  PR {prByExercise[exercise.id]} kg
-                </span>
-              )}
-            </button>
+          sections.map((section) => (
+            <div key={section.group} data-testid="exercise-section" className="flex flex-col gap-2">
+              <p
+                data-testid="exercise-section-heading"
+                className="text-[11px] font-semibold tracking-wide text-accent uppercase"
+              >
+                {muscleGroupLabels[section.group]}
+              </p>
+              {section.exercises.map((exercise) => (
+                <button
+                  key={exercise.id}
+                  onClick={() => setSelected(exercise)}
+                  className="card-shine card-pattern flex items-center gap-3 rounded-xl px-3.5 py-3 text-left"
+                >
+                  <span className="relative z-10 flex h-[34px] w-[34px] flex-none items-center justify-center rounded-[9px] bg-surface-2 text-accent">
+                    <BarbellIcon />
+                  </span>
+                  <span className="relative z-10 min-w-0 flex-1">
+                    <p className="text-[14.5px] font-semibold text-text">{exercise.name}</p>
+                    {exercise.createdByUserId && (
+                      <p className="text-[11px] uppercase tracking-wide text-muted">Custom</p>
+                    )}
+                  </span>
+                  {prByExercise[exercise.id] !== undefined && (
+                    <span className="relative z-10 shrink-0 text-[12px] text-muted">
+                      PR {prByExercise[exercise.id]} kg
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
           ))
         )}
 

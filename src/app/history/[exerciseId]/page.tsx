@@ -8,6 +8,10 @@ import SessionRow from "@/components/SessionRow";
 
 export const dynamic = "force-dynamic";
 
+function dayKey(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
 export default async function ExerciseHistoryPage(props: PageProps<"/history/[exerciseId]">) {
   const { exerciseId } = await props.params;
   const { userId } = await verifySession();
@@ -25,6 +29,19 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
 
   const prWeight = logs.length > 0 ? Math.max(...logs.map((l) => l.weight)) : null;
   const prLog = prWeight !== null ? logs.find((l) => l.weight === prWeight)! : null;
+
+  const sessions: { key: string; date: Date; logs: typeof logs; volume: number }[] = [];
+  for (const log of logs) {
+    const key = dayKey(log.date);
+    const session = sessions[sessions.length - 1]?.key === key ? sessions[sessions.length - 1] : null;
+    const volume = log.weight * log.sets * log.reps;
+    if (session) {
+      session.logs.push(log);
+      session.volume += volume;
+    } else {
+      sessions.push({ key, date: log.date, logs: [log], volume });
+    }
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
@@ -76,17 +93,71 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
             />
           </div>
 
-          <div className="flex flex-col gap-2 px-4 pt-4 pb-6">
+          <div className="flex flex-col gap-4 px-4 pt-4 pb-6">
             <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
               All Sessions
             </p>
-            {[...logs].reverse().map((log) => (
-              <SessionRow
-                key={log.id}
-                log={{ ...log, date: log.date.toISOString() }}
-                isPR={log.id === prLog!.id}
-              />
-            ))}
+            {[...sessions].reverse().map((session, i) => {
+              const previous = sessions[sessions.length - 1 - i - 1];
+              const delta =
+                previous && previous.volume > 0
+                  ? ((session.volume - previous.volume) / previous.volume) * 100
+                  : null;
+              const trend = delta === null ? null : delta > 0.5 ? "up" : delta < -0.5 ? "down" : "flat";
+
+              return (
+                <div key={session.key} className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] text-muted">
+                      {session.date.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-muted">
+                        Vol {Math.round(session.volume).toLocaleString("en-US")} kg
+                      </span>
+                      {trend && (
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase ${
+                            trend === "up"
+                              ? "border-accent bg-accent-soft text-accent"
+                              : trend === "down"
+                                ? "border-red-400/40 bg-red-400/10 text-red-400"
+                                : "border-border bg-surface-2 text-muted"
+                          }`}
+                        >
+                          {trend === "up"
+                            ? `Progressed +${delta!.toFixed(0)}%`
+                            : trend === "down"
+                              ? `Regressed ${delta!.toFixed(0)}%`
+                              : "Same"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {[...session.logs].reverse().map((log) => (
+                      <SessionRow
+                        key={log.id}
+                        log={{
+                          id: log.id,
+                          weight: log.weight,
+                          sets: log.sets,
+                          reps: log.reps,
+                          rir: log.rir,
+                          notes: log.notes,
+                          date: log.date.toISOString(),
+                        }}
+                        isPR={log.id === prLog!.id}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </>
       )}
