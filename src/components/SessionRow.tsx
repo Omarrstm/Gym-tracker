@@ -168,9 +168,9 @@ export default function SessionRow({ log, isPR = false }: { log: Log; isPR?: boo
 
   return (
     <div className="rounded-xl border border-border bg-surface px-3.5 py-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5">
         <span className="text-[13px] text-muted">{dateLabel}</span>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1.5">
           {isPR && (
             <span className="rounded-full border border-accent bg-accent-soft px-2 py-0.5 text-[10px] font-bold tracking-wide text-accent uppercase">
               PR
