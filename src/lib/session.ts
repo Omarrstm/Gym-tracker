@@ -47,6 +47,16 @@ export async function createSession(userId: string) {
   });
 }
 
+// For the mobile app: same session mechanism as createSession, but the token
+// is returned instead of set as a cookie, since the client stores it itself
+// (SecureStore) and sends it back as a Bearer header.
+export async function createMobileSession(userId: string) {
+  const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+  const session = await prisma.session.create({ data: { userId, expiresAt } });
+  const token = await encrypt({ sessionId: session.id });
+  return { token, expiresAt };
+}
+
 export async function getSessionCookie() {
   const cookieStore = await cookies();
   return decrypt(cookieStore.get(COOKIE_NAME)?.value);
