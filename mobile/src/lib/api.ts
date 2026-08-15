@@ -262,3 +262,64 @@ export type StatsResponse = {
 export function getStats(token: string) {
   return request<StatsResponse>("/api/mobile/stats", { token });
 }
+
+export type BodyWeightLog = { id: string; weightKg: number; date: string };
+
+export type ProfileResponse = {
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    heightCm: number | null;
+    weightKg: number | null;
+    dateOfBirth: string | null;
+    sex: "MALE" | "FEMALE" | null;
+    restTimerSeconds: number;
+  };
+  bmi: number | null;
+  bmiCategory: string | null;
+  bmr: number | null;
+  bodyWeightLogs: BodyWeightLog[];
+};
+
+export function getProfile(token: string) {
+  return request<ProfileResponse>("/api/mobile/profile", { token });
+}
+
+export function updateName(token: string, name: string) {
+  return request<{ ok: true }>("/api/mobile/profile/name", { method: "PATCH", token, body: { name } });
+}
+
+export function updateBodyStats(
+  token: string,
+  input: { heightCm: number; weightKg: number; dateOfBirth: string; sex: "MALE" | "FEMALE" }
+) {
+  return request<{ ok: true }>("/api/mobile/profile/body-stats", {
+    method: "PATCH",
+    token,
+    body: input,
+  });
+}
+
+export function updateRestTimer(token: string, restTimerSeconds: number) {
+  return request<{ ok: true }>("/api/mobile/profile/rest-timer", {
+    method: "PATCH",
+    token,
+    body: { restTimerSeconds },
+  });
+}
+
+export function logBodyWeight(token: string, weightKg: number) {
+  return request<{ ok: true }>("/api/mobile/profile/body-weight", {
+    method: "POST",
+    token,
+    body: { weightKg },
+  });
+}
+
+export function deleteBodyWeightLog(token: string, logId: string) {
+  return request<{ ok: true }>(`/api/mobile/profile/body-weight/${logId}`, {
+    method: "DELETE",
+    token,
+  });
+}

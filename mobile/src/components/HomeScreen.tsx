@@ -196,6 +196,9 @@ export default function HomeScreen() {
           <TouchableOpacity onPress={() => router.push("/stats")}>
             <Text style={styles.headerLink}>Stats</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/profile")}>
+            <Text style={styles.headerLink}>Profile</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={signOut}>
             <Text style={styles.headerLink}>Log Out</Text>
           </TouchableOpacity>
