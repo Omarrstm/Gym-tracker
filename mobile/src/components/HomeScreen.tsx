@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "expo-router";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -128,6 +129,7 @@ function LogSetRow({
 
 export default function HomeScreen() {
   const { token, user, signOut } = useAuth();
+  const router = useRouter();
   const [data, setData] = useState<api.TodayResponse | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [prBanner, setPrBanner] = useState(false);
@@ -184,9 +186,14 @@ export default function HomeScreen() {
             <Text style={styles.titleAccent}>{(user?.name ?? "there").split(" ")[0]}</Text>
           </Text>
         </View>
-        <TouchableOpacity onPress={signOut}>
-          <Text style={styles.logOut}>Log Out</Text>
-        </TouchableOpacity>
+        <View style={styles.headerLinks}>
+          <TouchableOpacity onPress={() => router.push("/programs")}>
+            <Text style={styles.headerLink}>Programs</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={signOut}>
+            <Text style={styles.headerLink}>Log Out</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {prBanner && (
@@ -208,12 +215,27 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      {data.program && (
+        <TouchableOpacity
+          style={styles.programCard}
+          onPress={() => router.push(`/programs/${data.program!.id}`)}
+        >
+          <View>
+            <Text style={styles.programCardLabel}>Active Program</Text>
+            <Text style={styles.programCardName}>{data.program.name}</Text>
+          </View>
+          <Text style={styles.programCardArrow}>{"→"}</Text>
+        </TouchableOpacity>
+      )}
+
       {!data.program && (
         <View style={styles.emptyCard}>
           <Text style={styles.emptyText}>
-            You don&rsquo;t have an active program yet. Build one on the web app to see your daily
-            workout here.
+            You don&rsquo;t have an active program yet. Build one to see your daily workout here.
           </Text>
+          <TouchableOpacity onPress={() => router.push("/programs")}>
+            <Text style={styles.emptyCardLink}>Create a Program {"→"}</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -258,7 +280,8 @@ const styles = StyleSheet.create({
   },
   title: { color: colors.text, fontSize: 30, fontWeight: "800", marginTop: 10, lineHeight: 32 },
   titleAccent: { color: colors.accent },
-  logOut: { color: colors.muted, fontSize: 12, fontWeight: "600", marginTop: 6 },
+  headerLinks: { alignItems: "flex-end", gap: 10, marginTop: 6 },
+  headerLink: { color: colors.muted, fontSize: 12, fontWeight: "600" },
   prBanner: {
     backgroundColor: colors.accent,
     borderRadius: 10,
@@ -284,6 +307,25 @@ const styles = StyleSheet.create({
   },
   statValue: { color: colors.text, fontSize: 24, fontWeight: "800", marginTop: 4 },
   statSub: { color: colors.accent, fontSize: 12, marginTop: 2 },
+  programCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface2,
+    borderRadius: 12,
+    padding: 14,
+  },
+  programCardLabel: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  programCardName: { color: colors.text, fontSize: 15, fontWeight: "700", marginTop: 2 },
+  programCardArrow: { color: colors.accent, fontSize: 16, fontWeight: "700" },
   emptyCard: {
     borderWidth: 1,
     borderStyle: "dashed",
@@ -291,6 +333,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
   },
+  emptyCardLink: { color: colors.accent, fontSize: 13, fontWeight: "700", marginTop: 8 },
   dayNote: {
     color: colors.accent,
     fontSize: 13,

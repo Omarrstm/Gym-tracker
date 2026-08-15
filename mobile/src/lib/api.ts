@@ -99,3 +99,95 @@ export type LogSetResponse = { isNewPR: boolean; previousBest: number | null };
 export function logSet(token: string, input: LogSetInput) {
   return request<LogSetResponse>("/api/mobile/log-set", { method: "POST", token, body: input });
 }
+
+export type ProgramSummary = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  dayCount: number;
+  exerciseCount: number;
+};
+
+export function getPrograms(token: string) {
+  return request<{ programs: ProgramSummary[] }>("/api/mobile/programs", { token });
+}
+
+export function createProgram(token: string, name: string) {
+  return request<{ id: string }>("/api/mobile/programs", {
+    method: "POST",
+    token,
+    body: { name },
+  });
+}
+
+export function activateProgram(token: string, programId: string) {
+  return request<{ ok: true }>(`/api/mobile/programs/${programId}/activate`, {
+    method: "POST",
+    token,
+  });
+}
+
+export function deleteProgram(token: string, programId: string) {
+  return request<{ ok: true }>(`/api/mobile/programs/${programId}`, {
+    method: "DELETE",
+    token,
+  });
+}
+
+export type ProgramExerciseEntry = {
+  id: string;
+  exercise: { id: string; name: string; muscleGroup: string };
+  targetWeight: number | null;
+  targetSets: number | null;
+  targetReps: number | null;
+};
+
+export type ProgramDay = {
+  dayOfWeek: string;
+  label: string | null;
+  notes: string | null;
+  exercises: ProgramExerciseEntry[];
+};
+
+export type ExerciseCatalogEntry = { id: string; name: string; muscleGroup: string };
+
+export type ProgramDetailResponse = {
+  program: { id: string; name: string; isActive: boolean };
+  days: ProgramDay[];
+  allExercises: ExerciseCatalogEntry[];
+};
+
+export function getProgramDetail(token: string, programId: string) {
+  return request<ProgramDetailResponse>(`/api/mobile/programs/${programId}`, { token });
+}
+
+export function addProgramExercise(
+  token: string,
+  programId: string,
+  input: { dayOfWeek: string; exerciseId: string; weight?: number | null; sets?: number | null; reps?: number | null }
+) {
+  return request<{ id: string }>(`/api/mobile/programs/${programId}/exercises`, {
+    method: "POST",
+    token,
+    body: input,
+  });
+}
+
+export function updateProgramExercise(
+  token: string,
+  programExerciseId: string,
+  input: { weight?: number | null; sets?: number | null; reps?: number | null }
+) {
+  return request<{ ok: true }>(`/api/mobile/program-exercises/${programExerciseId}`, {
+    method: "PATCH",
+    token,
+    body: input,
+  });
+}
+
+export function removeProgramExercise(token: string, programExerciseId: string) {
+  return request<{ ok: true }>(`/api/mobile/program-exercises/${programExerciseId}`, {
+    method: "DELETE",
+    token,
+  });
+}
