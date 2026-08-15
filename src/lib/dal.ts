@@ -33,3 +33,27 @@ export const getUser = cache(async () => {
     },
   });
 });
+
+export const getOptionalUser = cache(async () => {
+  const payload = await getSessionCookie();
+  if (!payload?.sessionId) return null;
+
+  const session = await prisma.session.findUnique({
+    where: { id: payload.sessionId as string },
+  });
+  if (!session || session.expiresAt < new Date()) return null;
+
+  return prisma.user.findUnique({
+    where: { id: session.userId },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      heightCm: true,
+      weightKg: true,
+      dateOfBirth: true,
+      sex: true,
+      restTimerSeconds: true,
+    },
+  });
+});

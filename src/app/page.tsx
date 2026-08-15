@@ -1,16 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getUser } from "@/lib/dal";
+import { getOptionalUser } from "@/lib/dal";
 import { getCoachProfile } from "@/lib/coachDal";
 import { logout } from "@/app/actions";
 import { dayLabels } from "@/lib/days";
 import { getTodaysWorkout } from "@/lib/todayWorkout";
 import { formatVolume, getStreakAndWeekVolume } from "@/lib/stats";
+import LandingPage from "@/components/LandingPage";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const user = await getUser();
+  const user = await getOptionalUser();
+  if (!user) {
+    return <LandingPage />;
+  }
   const userId = user.id;
   const todayLabel = new Date().toLocaleDateString("en-US", {
     month: "long",
@@ -44,13 +48,16 @@ export default async function Home() {
       </div>
 
       <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col">
-        <header className="flex items-start justify-between border-b border-border/70 px-4 pt-6 pb-4">
+        <header className="flex items-start justify-between border-b border-border/70 px-4 pt-6 pb-5">
           <div>
-            <p className="font-display text-[13px] tracking-[0.12em] text-accent uppercase">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3 py-1 text-[11px] font-semibold tracking-wide text-accent uppercase">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
               {dayLabels[today]} &middot; {todayLabel}
-            </p>
-            <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
-              Overview
+            </span>
+            <h1 className="mt-3 font-display text-[36px] leading-[0.95] tracking-wide text-text uppercase">
+              Welcome back,
+              <br />
+              <span className="text-accent">{user.name.split(" ")[0]}</span>
             </h1>
           </div>
           <div className="mt-1 flex flex-col items-end gap-1.5">
