@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { colors } from "@/constants/colors";
 import { useAuth } from "@/lib/auth-context";
+import { ApiError } from "@/lib/api";
 
 export default function AuthScreen() {
   const { signIn, signUp } = useAuth();
@@ -32,7 +33,8 @@ export default function AuthScreen() {
         await signUp(name.trim(), email.trim().toLowerCase(), password);
       }
     } catch (e) {
-      setError(e instanceof Error ? `${e.name}: ${e.message}` : String(e));
+      if (e instanceof ApiError) setError(e.message);
+      else setError(e instanceof Error ? `${e.name}: ${e.message}` : String(e));
     } finally {
       setPending(false);
     }
