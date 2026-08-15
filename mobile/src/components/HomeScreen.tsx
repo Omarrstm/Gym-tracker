@@ -199,6 +199,15 @@ export default function HomeScreen() {
           <TouchableOpacity onPress={() => router.push("/profile")}>
             <Text style={styles.headerLink}>Profile</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/coaches")}>
+            <Text style={styles.headerLink}>Coaches</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/coaches/mine")}>
+            <Text style={styles.headerLink}>My Coach</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/coach/profile")}>
+            <Text style={styles.headerLink}>Become a Coach</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={signOut}>
             <Text style={styles.headerLink}>Log Out</Text>
           </TouchableOpacity>

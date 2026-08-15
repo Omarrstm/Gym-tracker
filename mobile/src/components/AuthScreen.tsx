@@ -17,6 +17,7 @@ import { ApiError } from "@/lib/api";
 export default function AuthScreen() {
   const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
+  const [role, setRole] = useState<"athlete" | "coach">("athlete");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,7 +31,7 @@ export default function AuthScreen() {
       if (mode === "login") {
         await signIn(email.trim().toLowerCase(), password);
       } else {
-        await signUp(name.trim(), email.trim().toLowerCase(), password);
+        await signUp(name.trim(), email.trim().toLowerCase(), password, role);
       }
     } catch (e) {
       if (e instanceof ApiError) setError(e.message);
@@ -50,16 +51,53 @@ export default function AuthScreen() {
         <Text style={styles.title}>{mode === "login" ? "Log In" : "Create Account"}</Text>
 
         {mode === "signup" && (
-          <View style={styles.field}>
-            <Text style={styles.label}>Name</Text>
-            <TextInput
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-              style={styles.input}
-              placeholderTextColor={colors.muted}
-            />
-          </View>
+          <>
+            <View style={styles.field}>
+              <Text style={styles.label}>I am a...</Text>
+              <View style={styles.roleRow}>
+                <TouchableOpacity
+                  style={[styles.roleButton, role === "athlete" && styles.roleButtonActive]}
+                  onPress={() => setRole("athlete")}
+                >
+                  <Text
+                    style={[styles.roleButtonText, role === "athlete" && styles.roleButtonTextActive]}
+                  >
+                    Athlete
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.roleButton,
+                    role === "coach" && styles.roleButtonActiveBlue,
+                  ]}
+                  onPress={() => setRole("coach")}
+                >
+                  <Text
+                    style={[
+                      styles.roleButtonText,
+                      role === "coach" && styles.roleButtonTextActiveBlue,
+                    ]}
+                  >
+                    Coach
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {role === "coach" && (
+                <Text style={styles.roleHint}>Coach accounts include a 14-day free trial.</Text>
+              )}
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Name</Text>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+                style={styles.input}
+                placeholderTextColor={colors.muted}
+              />
+            </View>
+          </>
         )}
 
         <View style={styles.field}>
@@ -151,6 +189,22 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   error: { color: colors.danger, fontSize: 13, marginBottom: 10 },
+  roleRow: { flexDirection: "row", gap: 8 },
+  roleButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface2,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  roleButtonActive: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+  roleButtonActiveBlue: { borderColor: colors.accentBlue, backgroundColor: colors.accentBlueSoft },
+  roleButtonText: { color: colors.muted, fontSize: 13, fontWeight: "700" },
+  roleButtonTextActive: { color: colors.accent },
+  roleButtonTextActiveBlue: { color: colors.accentBlue },
+  roleHint: { color: colors.muted, fontSize: 11.5, marginTop: 6 },
   submit: {
     backgroundColor: colors.accent,
     borderRadius: 12,

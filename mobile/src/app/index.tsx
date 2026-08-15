@@ -3,6 +3,7 @@ import { colors } from "@/constants/colors";
 import { useAuth } from "@/lib/auth-context";
 import AuthScreen from "@/components/AuthScreen";
 import HomeScreen from "@/components/HomeScreen";
+import CoachHomeScreen from "@/components/CoachHomeScreen";
 
 export default function Index() {
   const { user, isLoading } = useAuth();
@@ -15,5 +16,6 @@ export default function Index() {
     );
   }
 
-  return user ? <HomeScreen /> : <AuthScreen />;
+  if (!user) return <AuthScreen />;
+  return user.isCoach ? <CoachHomeScreen /> : <HomeScreen />;
 }

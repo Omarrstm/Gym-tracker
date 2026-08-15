@@ -34,10 +34,10 @@ export type AuthResponse = {
   user: { id: string; name: string | null; email: string };
 };
 
-export function signup(name: string, email: string, password: string) {
+export function signup(name: string, email: string, password: string, role: "athlete" | "coach") {
   return request<AuthResponse>("/api/mobile/auth/signup", {
     method: "POST",
-    body: { name, email, password },
+    body: { name, email, password, role },
   });
 }
 
@@ -320,6 +320,129 @@ export function logBodyWeight(token: string, weightKg: number) {
 export function deleteBodyWeightLog(token: string, logId: string) {
   return request<{ ok: true }>(`/api/mobile/profile/body-weight/${logId}`, {
     method: "DELETE",
+    token,
+  });
+}
+
+export type CoachExperienceEntry = {
+  id: string;
+  title: string;
+  organization: string | null;
+  startYear: number | null;
+  endYear: number | null;
+  description: string | null;
+};
+
+export type CoachProfile = {
+  id: string;
+  bio: string | null;
+  specialties: string[];
+  joinCode: string;
+  isPublic: boolean;
+  subscriptionStatus: string;
+  trialEndsAt: string | null;
+};
+
+export function getCoachProfile(token: string) {
+  return request<{ profile: CoachProfile | null }>("/api/mobile/coach/profile", { token });
+}
+
+export function updateCoachProfile(
+  token: string,
+  input: { bio: string; specialties: string; isPublic: boolean }
+) {
+  return request<{ ok: true }>("/api/mobile/coach/profile", { method: "PATCH", token, body: input });
+}
+
+export function regenerateJoinCode(token: string) {
+  return request<{ joinCode: string }>("/api/mobile/coach/profile/regenerate-code", {
+    method: "POST",
+    token,
+  });
+}
+
+export type CoachDashboardResponse = {
+  profile: CoachProfile;
+  roster: { athleteId: string; name: string | null; email: string; streak: number }[];
+  pendingRequests: { athleteId: string; name: string | null }[];
+  sentInvites: { id: string; email: string }[];
+};
+
+export function getCoachDashboard(token: string) {
+  return request<CoachDashboardResponse>("/api/mobile/coach/dashboard", { token });
+}
+
+export function sendCoachInvite(token: string, email: string) {
+  return request<{ ok: true }>("/api/mobile/coach/invite", { method: "POST", token, body: { email } });
+}
+
+export function respondToRequest(token: string, athleteId: string, accept: boolean) {
+  return request<{ ok: true }>(`/api/mobile/coach/requests/${athleteId}`, {
+    method: "POST",
+    token,
+    body: { accept },
+  });
+}
+
+export type CoachListing = {
+  userId: string;
+  name: string;
+  bio: string | null;
+  specialties: string[];
+};
+
+export function getCoachDirectory(token: string) {
+  return request<{ coaches: CoachListing[] }>("/api/mobile/coaches", { token });
+}
+
+export type CoachDetail = {
+  coach: {
+    userId: string;
+    name: string;
+    bio: string | null;
+    specialties: string[];
+    experiences: CoachExperienceEntry[];
+  };
+  linkStatus: "NONE" | "PENDING" | "ACCEPTED" | "DECLINED" | "REVOKED";
+  isSelf: boolean;
+};
+
+export function getCoachDetail(token: string, coachUserId: string) {
+  return request<CoachDetail>(`/api/mobile/coaches/${coachUserId}`, { token });
+}
+
+export function requestCoach(token: string, coachUserId: string) {
+  return request<{ ok: true }>(`/api/mobile/coaches/${coachUserId}/request`, {
+    method: "POST",
+    token,
+  });
+}
+
+export function joinByCode(token: string, code: string) {
+  return request<{ ok: true }>("/api/mobile/coaches/join-code", {
+    method: "POST",
+    token,
+    body: { code },
+  });
+}
+
+export type MyCoachesResponse = {
+  accepted: {
+    coachId: string;
+    name: string | null;
+    email: string;
+    programs: { id: string; name: string; isActive: boolean }[];
+  }[];
+  pending: { coachId: string; name: string | null; email: string }[];
+};
+
+export function getMyCoaches(token: string) {
+  return request<MyCoachesResponse>("/api/mobile/coaches/mine", { token });
+}
+
+export function revokeCoachLink(token: string, counterpartUserId: string) {
+  return request<{ ok: true }>(`/api/mobile/coach-links/${counterpartUserId}/revoke`, {
+    method: "POST",
     token,
   });
 }

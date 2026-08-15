@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { createMobileSession } from "@/lib/session";
+import { generateUniqueJoinCode } from "@/lib/joinCode";
+import { computeTrialEndsAt } from "@/lib/billing";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const name = String(body?.name ?? "").trim();
   const email = String(body?.email ?? "").trim().toLowerCase();
   const password = String(body?.password ?? "");
+  const role = String(body?.role ?? "athlete");
 
   if (name.length < 2) {
     return NextResponse.json({ error: "Enter your name." }, { status: 400 });
@@ -34,6 +37,13 @@ export async function POST(request: Request) {
   const user = await prisma.user.create({
     data: { name, email, password: hashedPassword },
   });
+
+  if (role === "coach") {
+    const joinCode = await generateUniqueJoinCode();
+    await prisma.coachProfile.create({
+      data: { userId: user.id, joinCode, trialEndsAt: computeTrialEndsAt() },
+    });
+  }
 
   const { token } = await createMobileSession(user.id);
   return NextResponse.json({ token, user: { id: user.id, name: user.name, email: user.email } });

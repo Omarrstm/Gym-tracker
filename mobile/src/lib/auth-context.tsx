@@ -4,18 +4,33 @@ import * as api from "@/lib/api";
 
 const TOKEN_KEY = "gym-tracker-token";
 
-type User = { id: string; name: string | null; email: string; restTimerSeconds: number };
+type User = {
+  id: string;
+  name: string | null;
+  email: string;
+  restTimerSeconds: number;
+  isCoach: boolean;
+};
 
 type AuthContextValue = {
   token: string | null;
   user: User | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (name: string, email: string, password: string) => Promise<void>;
+  signUp: (name: string, email: string, password: string, role: "athlete" | "coach") => Promise<void>;
   signOut: () => Promise<void>;
+  refreshCoachStatus: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+async function loadUser(token: string): Promise<User> {
+  const [{ user: fetchedUser }, { profile }] = await Promise.all([
+    api.me(token),
+    api.getCoachProfile(token),
+  ]);
+  return { ...fetchedUser, isCoach: profile !== null };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
@@ -30,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       try {
-        const { user: fetchedUser } = await api.me(stored);
+        const fetchedUser = await loadUser(stored);
         setToken(stored);
         setUser(fetchedUser);
       } catch {
@@ -43,15 +58,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signIn(email: string, password: string) {
     const { token: newToken } = await api.login(email, password);
-    const { user: fetchedUser } = await api.me(newToken);
+    const fetchedUser = await loadUser(newToken);
     await SecureStore.setItemAsync(TOKEN_KEY, newToken);
     setToken(newToken);
     setUser(fetchedUser);
   }
 
-  async function signUp(name: string, email: string, password: string) {
-    const { token: newToken } = await api.signup(name, email, password);
-    const { user: fetchedUser } = await api.me(newToken);
+  async function signUp(name: string, email: string, password: string, role: "athlete" | "coach") {
+    const { token: newToken } = await api.signup(name, email, password, role);
+    const fetchedUser = await loadUser(newToken);
     await SecureStore.setItemAsync(TOKEN_KEY, newToken);
     setToken(newToken);
     setUser(fetchedUser);
@@ -63,8 +78,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
+  async function refreshCoachStatus() {
+    if (!token) return;
+    const { profile } = await api.getCoachProfile(token);
+    setUser((u) => (u ? { ...u, isCoach: profile !== null } : u));
+  }
+
   return (
-    <AuthContext.Provider value={{ token, user, isLoading, signIn, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{ token, user, isLoading, signIn, signUp, signOut, refreshCoachStatus }}
+    >
       {children}
     </AuthContext.Provider>
   );
