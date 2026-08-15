@@ -191,3 +191,74 @@ export function removeProgramExercise(token: string, programExerciseId: string) 
     token,
   });
 }
+
+export type HistoryLogEntry = {
+  id: string;
+  weight: number;
+  sets: number;
+  reps: number;
+  isWarmup: boolean;
+  exercise: { id: string; name: string; muscleGroup: string };
+};
+
+export type HistoryGroup = { label: string; logs: HistoryLogEntry[] };
+
+export function getHistory(token: string) {
+  return request<{ groups: HistoryGroup[] }>("/api/mobile/history", { token });
+}
+
+export type PRRow = {
+  exerciseId: string;
+  name: string;
+  muscleGroup: string;
+  weight: number;
+  date: string;
+};
+
+export function getAllPRs(token: string) {
+  return request<{ prs: PRRow[] }>("/api/mobile/history/prs", { token });
+}
+
+export type SessionLog = {
+  id: string;
+  weight: number;
+  sets: number;
+  reps: number;
+  rir: number | null;
+  notes: string | null;
+  isWarmup: boolean;
+  date: string;
+  isPR: boolean;
+};
+
+export type ExerciseSession = {
+  key: string;
+  date: string;
+  volume: number;
+  trend: "up" | "down" | "flat" | null;
+  delta: number | null;
+  logs: SessionLog[];
+};
+
+export type ExerciseHistoryResponse = {
+  exercise: { id: string; name: string; muscleGroup: string };
+  prWeight: number | null;
+  prDate: string | null;
+  sessions: ExerciseSession[];
+};
+
+export function getExerciseHistory(token: string, exerciseId: string) {
+  return request<ExerciseHistoryResponse>(`/api/mobile/history/${exerciseId}`, { token });
+}
+
+export type StatsResponse = {
+  streak: number;
+  thisWeekVolume: number;
+  weekDelta: number | null;
+  muscleGroupRanking: { muscleGroup: string; volume: number }[];
+  heatmap: { date: string; dateKey: string; volume: number; level: 0 | 1 | 2 | 3 | 4 }[][];
+};
+
+export function getStats(token: string) {
+  return request<StatsResponse>("/api/mobile/stats", { token });
+}
