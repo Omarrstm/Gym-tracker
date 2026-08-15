@@ -1,19 +1,57 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signup } from "./actions";
 
 function SignupForm() {
   const [state, formAction, pending] = useActionState(signup, undefined);
+  const [role, setRole] = useState<"athlete" | "coach">("athlete");
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
 
   return (
     <form action={formAction} className="relative z-10 mt-5 flex flex-col gap-3">
       {next && <input type="hidden" name="next" value={next} />}
+      <input type="hidden" name="role" value={role} />
+
+      <div className="flex flex-col gap-1">
+        <span className="text-[11px] font-semibold tracking-wide text-muted uppercase">
+          I am a...
+        </span>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setRole("athlete")}
+            className={`rounded-lg border px-3 py-2.5 text-[13px] font-semibold transition-colors ${
+              role === "athlete"
+                ? "border-accent bg-accent-soft text-accent"
+                : "border-border bg-surface-2 text-muted"
+            }`}
+          >
+            Athlete
+          </button>
+          <button
+            type="button"
+            onClick={() => setRole("coach")}
+            className={`rounded-lg border px-3 py-2.5 text-[13px] font-semibold transition-colors ${
+              role === "coach"
+                ? "border-accent-blue bg-accent-blue-soft text-accent-blue"
+                : "border-border bg-surface-2 text-muted"
+            }`}
+          >
+            Coach
+          </button>
+        </div>
+        {role === "coach" && (
+          <p className="mt-1 text-[11.5px] text-muted">
+            Coach accounts include a 14-day free trial.
+          </p>
+        )}
+      </div>
+
       <label className="flex flex-col gap-1">
         <span className="text-[11px] font-semibold tracking-wide text-muted uppercase">
           Name

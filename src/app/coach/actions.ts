@@ -7,6 +7,7 @@ import prisma from "@/lib/prisma";
 import { verifySession, getUser } from "@/lib/dal";
 import { generateUniqueJoinCode } from "@/lib/joinCode";
 import { sendCoachInviteEmail } from "@/lib/email";
+import { computeTrialEndsAt } from "@/lib/billing";
 
 export type CoachFormState = { error?: string; success?: string } | undefined;
 
@@ -39,7 +40,14 @@ export async function upsertCoachProfile(
   } else {
     const joinCode = await generateUniqueJoinCode();
     await prisma.coachProfile.create({
-      data: { userId, bio: bio || null, specialties, isPublic, joinCode },
+      data: {
+        userId,
+        bio: bio || null,
+        specialties,
+        isPublic,
+        joinCode,
+        trialEndsAt: computeTrialEndsAt(),
+      },
     });
   }
 
@@ -183,6 +191,66 @@ export async function sendCoachInvite(
 
   revalidatePath("/coach");
   return { success: `Invite sent to ${email}.` };
+}
+
+function parseYear(raw: FormDataEntryValue | null): number | null {
+  const value = String(raw ?? "").trim();
+  if (!value) return null;
+  const year = Number(value);
+  return Number.isInteger(year) ? year : null;
+}
+
+export type ExperienceFormState = { error?: string; success?: boolean } | undefined;
+
+export async function addCoachExperience(
+  _prevState: ExperienceFormState,
+  formData: FormData
+): Promise<ExperienceFormState> {
+  const title = String(formData.get("title") ?? "").trim();
+  const organization = String(formData.get("organization") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const startYear = parseYear(formData.get("startYear"));
+  const endYear = parseYear(formData.get("endYear"));
+
+  if (!title) return { error: "Enter a title." };
+
+  const { userId } = await verifySession();
+  const profile = await prisma.coachProfile.findUnique({ where: { userId } });
+  if (!profile) return { error: "You need a coach profile first." };
+
+  const last = await prisma.coachExperience.findFirst({
+    where: { coachProfileId: profile.id },
+    orderBy: { order: "desc" },
+  });
+
+  await prisma.coachExperience.create({
+    data: {
+      coachProfileId: profile.id,
+      title,
+      organization: organization || null,
+      description: description || null,
+      startYear,
+      endYear,
+      order: (last?.order ?? -1) + 1,
+    },
+  });
+
+  revalidatePath("/coach/profile");
+  revalidatePath("/coaches");
+  return { success: true };
+}
+
+export async function deleteCoachExperience(experienceId: string) {
+  const { userId } = await verifySession();
+  const profile = await prisma.coachProfile.findUnique({ where: { userId } });
+  if (!profile) throw new Error("You don't have a coach profile.");
+
+  await prisma.coachExperience.deleteMany({
+    where: { id: experienceId, coachProfileId: profile.id },
+  });
+
+  revalidatePath("/coach/profile");
+  revalidatePath("/coaches");
 }
 
 export async function acceptCoachInvite(token: string) {

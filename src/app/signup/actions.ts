@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { createSession } from "@/lib/session";
+import { generateUniqueJoinCode } from "@/lib/joinCode";
+import { computeTrialEndsAt } from "@/lib/billing";
 
 export type AuthFormState = { error?: string } | undefined;
 
@@ -17,6 +19,7 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+  const role = String(formData.get("role") ?? "athlete");
   const next = safeNext(formData.get("next"));
 
   if (name.length < 2) return { error: "Enter your name." };
@@ -30,6 +33,13 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   const user = await prisma.user.create({
     data: { name, email, password: hashedPassword },
   });
+
+  if (role === "coach") {
+    const joinCode = await generateUniqueJoinCode();
+    await prisma.coachProfile.create({
+      data: { userId: user.id, joinCode, trialEndsAt: computeTrialEndsAt() },
+    });
+  }
 
   await createSession(user.id);
   redirect(next ?? "/");

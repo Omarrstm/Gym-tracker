@@ -3,12 +3,16 @@ import prisma from "@/lib/prisma";
 import { verifySession } from "@/lib/dal";
 import CoachProfileForm from "./CoachProfileForm";
 import JoinCodeCard from "./JoinCodeCard";
+import CoachExperienceManager from "./CoachExperienceManager";
 
 export const dynamic = "force-dynamic";
 
 export default async function CoachProfilePage() {
   const { userId } = await verifySession();
-  const profile = await prisma.coachProfile.findUnique({ where: { userId } });
+  const profile = await prisma.coachProfile.findUnique({
+    where: { userId },
+    include: { experiences: { orderBy: { order: "asc" } } },
+  });
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-6">
@@ -49,8 +53,22 @@ export default async function CoachProfilePage() {
         </section>
 
         {profile && (
+          <section className="card-shine rounded-2xl p-6">
+            <h2 className="relative z-10 mb-1 font-display text-[15px] tracking-wide text-text uppercase">
+              Experience
+            </h2>
+            <p className="relative z-10 mb-4 text-[12.5px] text-muted">
+              Shown on your public profile to help athletes decide to work with you.
+            </p>
+            <div className="relative z-10">
+              <CoachExperienceManager experiences={profile.experiences} />
+            </div>
+          </section>
+        )}
+
+        {profile && (
           <Link
-            href="/coach"
+            href="/"
             className="card-shine rounded-2xl p-6 text-center font-display text-[14px] tracking-wide text-accent uppercase"
           >
             Go to Coach Dashboard &rarr;

@@ -7,6 +7,7 @@ import { dayLabels } from "@/lib/days";
 import { getTodaysWorkout } from "@/lib/todayWorkout";
 import { formatVolume, getStreakAndWeekVolume } from "@/lib/stats";
 import LandingPage from "@/components/LandingPage";
+import CoachHome from "@/components/CoachHome";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,12 @@ export default async function Home() {
     return <LandingPage />;
   }
   const userId = user.id;
+
+  const coachProfile = await getCoachProfile(userId);
+  if (coachProfile) {
+    return <CoachHome user={user} profile={coachProfile} />;
+  }
+
   const todayLabel = new Date().toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
@@ -23,7 +30,6 @@ export default async function Home() {
 
   const { today, program, programDay, items } = await getTodaysWorkout(userId);
   const { streak, thisWeekVolume } = await getStreakAndWeekVolume(userId, new Date());
-  const coachProfile = await getCoachProfile(userId);
 
   const loggedCount = items.filter((item) => item.loggedCount > 0).length;
 
@@ -57,7 +63,7 @@ export default async function Home() {
             <h1 className="mt-3 font-display text-[36px] leading-[0.95] tracking-wide text-text uppercase">
               Welcome back,
               <br />
-              <span className="text-accent">{user.name.split(" ")[0]}</span>
+              <span className="text-accent">{(user.name ?? "there").split(" ")[0]}</span>
             </h1>
           </div>
           <div className="mt-1 flex flex-col items-end gap-1.5">
@@ -98,10 +104,10 @@ export default async function Home() {
               My Coach
             </Link>
             <Link
-              href={coachProfile ? "/coach" : "/coach/profile"}
+              href="/coach/profile"
               className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
             >
-              {coachProfile ? "Coach Dashboard" : "Become a Coach"}
+              Become a Coach
             </Link>
             <Link
               href="/profile"
