@@ -60,7 +60,7 @@ export default async function Home() {
   const loggedCount = items.filter((item) => item.loggedCount > 0).length;
 
   return (
-    <div className="relative min-h-screen w-full flex-1">
+    <div className="relative min-h-screen w-full flex-1 overflow-hidden">
       <div
         className="pointer-events-none absolute top-0 right-0 -z-10 h-[420px] w-[420px] rounded-full opacity-20 blur-[100px]"
         style={{ background: "var(--color-accent)" }}
