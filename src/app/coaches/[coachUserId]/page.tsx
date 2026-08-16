@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { verifySession } from "@/lib/dal";
+import { getUser } from "@/lib/dal";
 import RequestCoachButton from "./RequestCoachButton";
+import AppHeader from "@/components/AppHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,8 @@ export default async function CoachDetailPage({
   params: Promise<{ coachUserId: string }>;
 }) {
   const { coachUserId } = await params;
-  const { userId } = await verifySession();
+  const user = await getUser();
+  const userId = user.id;
 
   const profile = await prisma.coachProfile.findUnique({
     where: { userId: coachUserId },
@@ -28,7 +30,16 @@ export default async function CoachDetailPage({
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-6">
+    <div className="relative min-h-screen w-full flex-1 overflow-hidden">
+      <div
+        className="pointer-events-none absolute top-0 right-0 -z-10 h-[420px] w-[420px] rounded-full opacity-20 blur-[100px]"
+        style={{ background: "var(--color-accent)" }}
+      />
+
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-10">
+        <AppHeader userName={user.name} />
+
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col py-6">
       <header className="mb-5">
         <Link
           href="/coaches"
@@ -100,6 +111,8 @@ export default async function CoachDetailPage({
         {coachUserId !== userId && (
           <RequestCoachButton coachUserId={coachUserId} linkStatus={link?.status ?? "NONE"} />
         )}
+      </div>
+        </div>
       </div>
     </div>
   );

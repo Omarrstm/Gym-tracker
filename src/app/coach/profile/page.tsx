@@ -1,21 +1,32 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { verifySession } from "@/lib/dal";
+import { getUser } from "@/lib/dal";
 import CoachProfileForm from "./CoachProfileForm";
 import JoinCodeCard from "./JoinCodeCard";
 import CoachExperienceManager from "./CoachExperienceManager";
+import AppHeader from "@/components/AppHeader";
 
 export const dynamic = "force-dynamic";
 
 export default async function CoachProfilePage() {
-  const { userId } = await verifySession();
+  const user = await getUser();
+  const userId = user.id;
   const profile = await prisma.coachProfile.findUnique({
     where: { userId },
     include: { experiences: { orderBy: { order: "asc" } } },
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-6">
+    <div className="relative min-h-screen w-full flex-1 overflow-hidden">
+      <div
+        className="pointer-events-none absolute top-0 right-0 -z-10 h-[420px] w-[420px] rounded-full opacity-20 blur-[100px]"
+        style={{ background: "var(--color-accent)" }}
+      />
+
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-10">
+        <AppHeader userName={user.name} />
+
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col py-6">
       <header className="mb-5">
         <Link
           href="/profile"
@@ -74,6 +85,8 @@ export default async function CoachProfilePage() {
             Go to Coach Dashboard &rarr;
           </Link>
         )}
+      </div>
+        </div>
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { verifySession } from "@/lib/dal";
+import { getUser } from "@/lib/dal";
 import { muscleGroupLabels } from "@/lib/muscleGroups";
 import Exercise1RMChart from "@/components/Exercise1RMChart";
 import SessionRow from "@/components/SessionRow";
+import AppHeader from "@/components/AppHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,8 @@ function dayKey(d: Date) {
 
 export default async function ExerciseHistoryPage(props: PageProps<"/history/[exerciseId]">) {
   const { exerciseId } = await props.params;
-  const { userId } = await verifySession();
+  const user = await getUser();
+  const userId = user.id;
 
   const exercise = await prisma.exercise.findUnique({
     where: { id: exerciseId },
@@ -45,30 +47,39 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
-      <header className="border-b border-border px-4 pt-6 pb-4">
-        <Link
-          href="/history"
-          className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-        >
-          &larr; History
-        </Link>
-        <p className="mt-2 font-display text-[13px] tracking-[0.12em] text-accent uppercase">
-          {muscleGroupLabels[exercise.muscleGroup]}
-        </p>
-        <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
-          {exercise.name}
-        </h1>
-      </header>
+    <div className="relative min-h-screen w-full flex-1 overflow-hidden">
+      <div
+        className="pointer-events-none absolute top-0 right-0 -z-10 h-[420px] w-[420px] rounded-full opacity-20 blur-[100px]"
+        style={{ background: "var(--color-accent)" }}
+      />
+
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-10">
+        <AppHeader userName={user.name} />
+
+        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
+          <div className="pt-8 pb-4">
+            <Link
+              href="/history"
+              className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+            >
+              &larr; History
+            </Link>
+            <p className="mt-2 font-display text-[13px] tracking-[0.12em] text-accent uppercase">
+              {muscleGroupLabels[exercise.muscleGroup]}
+            </p>
+            <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
+              {exercise.name}
+            </h1>
+          </div>
 
       {logs.length === 0 ? (
-        <p className="px-4 py-16 text-center text-[14px] text-muted">
+        <p className="py-16 text-center text-[14px] text-muted">
           No sets logged for this exercise yet.
         </p>
       ) : (
         <>
-          <div className="mx-4 mt-4 flex items-center justify-between rounded-xl border border-border bg-surface-2 px-4 py-3">
-            <div>
+          <div className="card-shine flex items-center justify-between rounded-xl px-4 py-3">
+            <div className="relative z-10">
               <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
                 Personal Record
               </p>
@@ -77,7 +88,7 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
               </p>
             </div>
             {prLog && (
-              <p className="text-[12px] text-muted">
+              <p className="relative z-10 text-[12px] text-muted">
                 {prLog.date.toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -87,7 +98,7 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
             )}
           </div>
 
-          <div className="mx-4 mt-5">
+          <div className="mt-5">
             <p className="mb-2 text-[11px] font-semibold tracking-wide text-muted uppercase">
               Estimated 1RM
             </p>
@@ -100,7 +111,7 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
             />
           </div>
 
-          <div className="flex flex-col gap-4 px-4 pt-4 pb-6">
+          <div className="flex flex-col gap-4 pt-4 pb-6">
             <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
               All Sessions
             </p>
@@ -169,6 +180,8 @@ export default async function ExerciseHistoryPage(props: PageProps<"/history/[ex
           </div>
         </>
       )}
+        </div>
+      </div>
     </div>
   );
 }

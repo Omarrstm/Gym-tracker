@@ -8,7 +8,11 @@ export default function ForgotPasswordPage() {
   const [state, formAction, pending] = useActionState(requestPasswordReset, undefined);
 
   return (
-    <div className="flex min-h-screen w-full flex-1 items-center justify-center px-4">
+    <div className="relative flex min-h-screen w-full flex-1 items-center justify-center overflow-hidden px-4">
+      <div
+        className="pointer-events-none absolute top-0 right-0 -z-10 h-[420px] w-[420px] rounded-full opacity-20 blur-[100px]"
+        style={{ background: "var(--color-accent)" }}
+      />
       <div className="card-shine w-full max-w-sm rounded-2xl p-6">
         <p className="font-display text-[13px] tracking-[0.12em] text-accent uppercase">
           Gym Tracker

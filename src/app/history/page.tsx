@@ -1,7 +1,8 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { verifySession } from "@/lib/dal";
+import { getUser } from "@/lib/dal";
 import HistoryLogRow from "@/components/HistoryLogRow";
+import AppHeader from "@/components/AppHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,8 @@ function dayLabel(d: Date) {
 }
 
 export default async function HistoryPage() {
-  const { userId } = await verifySession();
+  const user = await getUser();
+  const userId = user.id;
   const logs = await prisma.workoutLog.findMany({
     where: { userId },
     orderBy: { date: "desc" },
@@ -38,70 +40,61 @@ export default async function HistoryPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
-      <header className="flex items-start justify-between border-b border-border px-4 pt-6 pb-4">
-        <div>
-          <p className="font-display text-[13px] tracking-[0.12em] text-accent uppercase">
-            Progress
-          </p>
-          <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
-            History
-          </h1>
-        </div>
-        <div className="mt-1 flex flex-col items-end gap-1.5">
-          <Link
-            href="/"
-            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-          >
-            Today
-          </Link>
-          <Link
-            href="/program"
-            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-          >
-            Programs
-          </Link>
-          <Link
-            href="/history/prs"
-            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-          >
-            All PRs
-          </Link>
-          <Link
-            href="/stats"
-            className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-          >
-            Stats
-          </Link>
-        </div>
-      </header>
+    <div className="relative min-h-screen w-full flex-1 overflow-hidden">
+      <div
+        className="pointer-events-none absolute top-0 right-0 -z-10 h-[420px] w-[420px] rounded-full opacity-20 blur-[100px]"
+        style={{ background: "var(--color-accent)" }}
+      />
 
-      {groups.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 px-4 py-16 text-center">
-          <p className="text-[14px] text-muted">Nothing logged yet.</p>
-          <Link
-            href="/exercises"
-            className="rounded-full bg-accent px-5 py-2.5 text-[13px] font-bold tracking-wide text-bg uppercase"
-          >
-            Browse Exercises
-          </Link>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-5 px-4 pt-4 pb-6">
-          {groups.map((group) => (
-            <div key={group.label} className="flex flex-col gap-2">
-              <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
-                {group.label}
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-10">
+        <AppHeader userName={user.name} />
+
+        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
+          <div className="flex items-start justify-between pt-8 pb-4">
+            <div>
+              <p className="font-display text-[13px] tracking-[0.12em] text-accent uppercase">
+                Progress
               </p>
-              <div className="flex flex-col gap-2">
-                {group.logs.map((log) => (
-                  <HistoryLogRow key={log.id} log={log} />
-                ))}
-              </div>
+              <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
+                History
+              </h1>
             </div>
-          ))}
+            <Link
+              href="/history/prs"
+              className="mt-1 text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+            >
+              All PRs
+            </Link>
+          </div>
+
+          {groups.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 py-16 text-center">
+              <p className="text-[14px] text-muted">Nothing logged yet.</p>
+              <Link
+                href="/exercises"
+                className="rounded-full bg-accent px-5 py-2.5 text-[13px] font-bold tracking-wide text-bg uppercase"
+              >
+                Browse Exercises
+              </Link>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-5 pb-6">
+              {groups.map((group) => (
+                <div key={group.label} className="flex flex-col gap-2">
+                  <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
+                    {group.label}
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {group.logs.map((log) => (
+                      <HistoryLogRow key={log.id} log={log} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

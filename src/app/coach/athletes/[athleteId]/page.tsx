@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
+import { getUser } from "@/lib/dal";
 import { requireCoachProfile } from "@/lib/coachDal";
 import { getTodaysWorkout } from "@/lib/todayWorkout";
 import { getStreakAndWeekVolume, formatVolume } from "@/lib/stats";
@@ -8,6 +9,8 @@ import { dayLabels } from "@/lib/days";
 import { muscleGroupLabels } from "@/lib/muscleGroups";
 import { CreateOrAssignForm, UnassignButton } from "./AthleteProgramActions";
 import RevokeLinkButton from "@/components/RevokeLinkButton";
+import CoachAppHeader from "@/components/CoachAppHeader";
+import { FlameIcon, TrendingUpIcon } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +22,7 @@ export default async function AthleteDetailPage({
   const { athleteId } = await params;
   const profile = await requireCoachProfile();
   const coachId = profile.userId;
+  const user = await getUser();
 
   const link = await prisma.coachAthlete.findUnique({
     where: { coachId_athleteId: { coachId, athleteId } },
@@ -32,7 +36,7 @@ export default async function AthleteDetailPage({
   if (!athlete) notFound();
 
   const now = new Date();
-  const [{ today, programDay, items }, { streak, thisWeekVolume }, programs, templates, logs] =
+  const [{ today, items }, { streak, thisWeekVolume }, programs, templates, logs] =
     await Promise.all([
       getTodaysWorkout(athleteId),
       getStreakAndWeekVolume(athleteId, now),
@@ -70,15 +74,24 @@ export default async function AthleteDetailPage({
   const prs = [...prByExercise.values()].sort((a, b) => b.weight - a.weight).slice(0, 5);
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-6">
+    <div className="relative min-h-screen w-full flex-1 overflow-hidden">
+      <div
+        className="pointer-events-none absolute top-0 right-0 -z-10 h-[420px] w-[420px] rounded-full opacity-20 blur-[100px]"
+        style={{ background: "var(--color-accent-blue)" }}
+      />
+
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-10">
+        <CoachAppHeader userName={user.name} />
+
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col py-6">
       <header className="mb-5">
         <Link
           href="/coach"
-          className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
+          className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent-blue hover:underline"
         >
           &larr; Dashboard
         </Link>
-        <p className="mt-3 font-display text-[13px] tracking-[0.12em] text-accent uppercase">
+        <p className="mt-3 font-display text-[13px] tracking-[0.12em] text-accent-blue uppercase">
           Athlete
         </p>
         <div className="flex items-start justify-between gap-3">
@@ -90,17 +103,23 @@ export default async function AthleteDetailPage({
 
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl border border-border bg-surface-2 px-4 py-3">
-            <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">Streak</p>
-            <p className="font-display text-[26px] leading-none text-text tabular-nums">{streak}</p>
-            <p className="mt-1 text-[12px] text-accent">{streak === 1 ? "day" : "days"}</p>
+          <div className="card-shine rounded-xl px-4 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-accent-blue/20 bg-accent-blue-soft text-accent-blue">
+              <FlameIcon />
+            </div>
+            <p className="mt-2.5 text-[11px] font-semibold tracking-wide text-muted uppercase">Streak</p>
+            <p className="font-display text-[24px] leading-none text-text tabular-nums">{streak}</p>
+            <p className="mt-1 text-[12px] text-accent-blue">{streak === 1 ? "day" : "days"}</p>
           </div>
-          <div className="rounded-xl border border-border bg-surface-2 px-4 py-3">
-            <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">This Week</p>
-            <p className="font-display text-[26px] leading-none text-text tabular-nums">
+          <div className="card-shine rounded-xl px-4 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-accent-blue/20 bg-accent-blue-soft text-accent-blue">
+              <TrendingUpIcon />
+            </div>
+            <p className="mt-2.5 text-[11px] font-semibold tracking-wide text-muted uppercase">This Week</p>
+            <p className="font-display text-[24px] leading-none text-text tabular-nums">
               {formatVolume(thisWeekVolume)}
             </p>
-            <p className="mt-1 text-[12px] text-accent">volume lifted</p>
+            <p className="mt-1 text-[12px] text-accent-blue">volume lifted</p>
           </div>
         </div>
 
@@ -122,10 +141,10 @@ export default async function AthleteDetailPage({
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-lg border border-border bg-surface-2 px-3.5 py-2.5"
+                  className="card-shine flex items-center justify-between rounded-lg px-3.5 py-2.5"
                 >
-                  <span className="text-[13.5px] font-semibold text-text">{item.exercise.name}</span>
-                  <span className="text-[12px] text-muted">
+                  <span className="relative z-10 text-[13.5px] font-semibold text-text">{item.exercise.name}</span>
+                  <span className="relative z-10 text-[12px] text-muted">
                     {item.loggedCount > 0 ? `${item.loggedCount} logged` : "not logged"}
                   </span>
                 </div>
@@ -158,8 +177,8 @@ export default async function AthleteDetailPage({
           </h2>
           <div className="relative z-10 flex flex-col gap-2">
             {programs.map((p) => (
-              <div key={p.id} className="rounded-xl border border-border bg-surface-2 px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
+              <div key={p.id} className="card-shine rounded-xl px-4 py-3">
+                <div className="relative z-10 flex items-center justify-between gap-3">
                   <Link href={`/program/${p.id}`} className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="truncate text-[14.5px] font-semibold text-text">{p.name}</p>
@@ -193,6 +212,8 @@ export default async function AthleteDetailPage({
 
         <div className="flex justify-end">
           <RevokeLinkButton counterpartUserId={athleteId} redirectTo="/coach" label="Remove Athlete" />
+        </div>
+      </div>
         </div>
       </div>
     </div>

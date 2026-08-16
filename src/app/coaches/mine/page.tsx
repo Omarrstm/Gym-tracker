@@ -1,12 +1,14 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { verifySession } from "@/lib/dal";
+import { getUser } from "@/lib/dal";
 import RevokeLinkButton from "@/components/RevokeLinkButton";
+import AppHeader from "@/components/AppHeader";
 
 export const dynamic = "force-dynamic";
 
 export default async function MyCoachesPage() {
-  const { userId } = await verifySession();
+  const user = await getUser();
+  const userId = user.id;
 
   const links = await prisma.coachAthlete.findMany({
     where: { athleteId: userId, status: { in: ["ACCEPTED", "PENDING"] } },
@@ -26,15 +28,18 @@ export default async function MyCoachesPage() {
       : [];
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-6">
+    <div className="relative min-h-screen w-full flex-1 overflow-hidden">
+      <div
+        className="pointer-events-none absolute top-0 right-0 -z-10 h-[420px] w-[420px] rounded-full opacity-20 blur-[100px]"
+        style={{ background: "var(--color-accent)" }}
+      />
+
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-10">
+        <AppHeader userName={user.name} />
+
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col py-6">
       <header className="mb-5">
-        <Link
-          href="/"
-          className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-        >
-          &larr; Home
-        </Link>
-        <p className="mt-3 font-display text-[13px] tracking-[0.12em] text-accent uppercase">
+        <p className="font-display text-[13px] tracking-[0.12em] text-accent uppercase">
           Coaching
         </p>
         <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
@@ -75,8 +80,8 @@ export default async function MyCoachesPage() {
               {accepted.map((l) => {
                 const programs = assignedPrograms.filter((p) => p.assignedByCoachId === l.coachId);
                 return (
-                  <div key={l.id} className="rounded-xl border border-border bg-surface-2 px-4 py-3">
-                    <div className="flex items-start justify-between gap-3">
+                  <div key={l.id} className="card-shine rounded-xl px-4 py-3">
+                    <div className="relative z-10 flex items-start justify-between gap-3">
                       <div>
                         <p className="text-[14.5px] font-semibold text-text">
                           {l.coach.name ?? l.coach.email}
@@ -91,7 +96,7 @@ export default async function MyCoachesPage() {
                       <RevokeLinkButton counterpartUserId={l.coachId} label="Unlink" />
                     </div>
                     {programs.length > 0 && (
-                      <div className="mt-2 flex flex-col gap-1 border-t border-border pt-2">
+                      <div className="relative z-10 mt-2 flex flex-col gap-1 border-t border-border pt-2">
                         {programs.map((p) => (
                           <Link
                             key={p.id}
@@ -110,6 +115,8 @@ export default async function MyCoachesPage() {
             </div>
           )}
         </section>
+      </div>
+        </div>
       </div>
     </div>
   );

@@ -1,41 +1,15 @@
 import Link from "next/link";
 import { getOptionalUser } from "@/lib/dal";
 import { getCoachProfile } from "@/lib/coachDal";
-import { logout } from "@/app/actions";
 import { dayLabels } from "@/lib/days";
 import { getTodaysWorkout } from "@/lib/todayWorkout";
 import { formatVolume, getStreakAndWeekVolume } from "@/lib/stats";
 import LandingPage from "@/components/LandingPage";
 import CoachHome from "@/components/CoachHome";
+import AppHeader from "@/components/AppHeader";
+import { CalendarIcon, FlameIcon, TrendingUpIcon } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
-
-function FlameIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2c1 3-2 4.5-2 7.5a4 4 0 0 0 8 0c0-1.5-.5-2.5-1-3.5.5 3-1 4-2 4-1.5 0-2-1.5-1-3C15 5 13.5 3 12 2z" />
-      <path d="M8.5 12.5A5.5 5.5 0 0 0 12 22a5.5 5.5 0 0 0 3.5-9.7" />
-    </svg>
-  );
-}
-
-function TrendingUpIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 17l6-6 4 4 8-8" />
-      <path d="M15 7h6v6" />
-    </svg>
-  );
-}
-
-function CalendarIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="5" width="18" height="16" rx="2" />
-      <path d="M3 10h18M8 3v4M16 3v4" />
-    </svg>
-  );
-}
 
 export default async function Home() {
   const user = await getOptionalUser();
@@ -67,69 +41,7 @@ export default async function Home() {
       />
 
       <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-10">
-        <header className="flex flex-col gap-4 border-b border-border/70 py-5 lg:flex-row lg:items-center lg:justify-between">
-          <Link href="/" className="font-display text-[20px] tracking-[0.12em] text-text uppercase">
-            Gym Tracker
-          </Link>
-          <nav className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <Link
-              href="/exercises"
-              className="text-[13px] font-semibold tracking-wide text-muted hover:text-accent"
-            >
-              Exercise Library
-            </Link>
-            <Link
-              href="/program"
-              className="text-[13px] font-semibold tracking-wide text-muted hover:text-accent"
-            >
-              Programs
-            </Link>
-            <Link
-              href="/history"
-              className="text-[13px] font-semibold tracking-wide text-muted hover:text-accent"
-            >
-              History
-            </Link>
-            <Link
-              href="/stats"
-              className="text-[13px] font-semibold tracking-wide text-muted hover:text-accent"
-            >
-              Stats
-            </Link>
-            <Link
-              href="/coaches"
-              className="text-[13px] font-semibold tracking-wide text-muted hover:text-accent"
-            >
-              Coaches
-            </Link>
-            <Link
-              href="/coaches/mine"
-              className="text-[13px] font-semibold tracking-wide text-muted hover:text-accent"
-            >
-              My Coach
-            </Link>
-            <Link
-              href="/coach/profile"
-              className="text-[13px] font-semibold tracking-wide text-muted hover:text-accent"
-            >
-              Become a Coach
-            </Link>
-            <Link
-              href="/profile"
-              className="text-[13px] font-semibold tracking-wide text-muted hover:text-accent"
-            >
-              {user.name}
-            </Link>
-            <form action={logout}>
-              <button
-                type="submit"
-                className="text-[13px] font-semibold tracking-wide text-muted hover:text-accent"
-              >
-                Log Out
-              </button>
-            </form>
-          </nav>
-        </header>
+        <AppHeader userName={user.name} />
 
         <section className="pt-10 pb-8 lg:pt-14 lg:pb-10">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3 py-1 text-[11px] font-semibold tracking-wide text-accent uppercase">

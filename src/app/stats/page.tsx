@@ -1,6 +1,5 @@
-import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { verifySession } from "@/lib/dal";
+import { getUser } from "@/lib/dal";
 import { muscleGroupLabels } from "@/lib/muscleGroups";
 import type { MuscleGroup } from "@/generated/prisma/client";
 import {
@@ -11,6 +10,8 @@ import {
   getWeekStart,
   sumVolumeInRange,
 } from "@/lib/stats";
+import AppHeader from "@/components/AppHeader";
+import { FlameIcon, TrendingUpIcon } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,8 @@ function formatDateKey(dateKey: string): string {
 }
 
 export default async function StatsPage() {
-  const { userId } = await verifySession();
+  const user = await getUser();
+  const userId = user.id;
 
   const today = new Date();
   const ninetyDaysAgo = new Date(today);
@@ -83,38 +85,45 @@ export default async function StatsPage() {
   const heatmap = buildHeatmapGrid(dailyVolumes, today);
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
-      <header className="flex items-start justify-between border-b border-border px-4 pt-6 pb-4">
-        <div>
-          <p className="font-display text-[13px] tracking-[0.12em] text-accent uppercase">
-            Progress
-          </p>
-          <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
-            Stats
-          </h1>
-        </div>
-        <Link
-          href="/"
-          className="mt-1 text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
-        >
-          Today
-        </Link>
-      </header>
+    <div className="relative min-h-screen w-full flex-1 overflow-hidden">
+      <div
+        className="pointer-events-none absolute top-0 right-0 -z-10 h-[420px] w-[420px] rounded-full opacity-20 blur-[100px]"
+        style={{ background: "var(--color-accent)" }}
+      />
 
-      <div className="flex flex-col gap-4 px-4 pt-4 pb-6">
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-10">
+        <AppHeader userName={user.name} />
+
+        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
+          <div className="pt-8 pb-4">
+            <p className="font-display text-[13px] tracking-[0.12em] text-accent uppercase">
+              Progress
+            </p>
+            <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
+              Stats
+            </h1>
+          </div>
+
+      <div className="flex flex-col gap-4 pb-6">
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl border border-border bg-surface-2 px-4 py-3">
-            <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">Streak</p>
-            <p className="font-display text-[26px] leading-none text-text tabular-nums">
+          <div className="card-shine rounded-xl px-4 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-accent/20 bg-accent-soft text-accent">
+              <FlameIcon />
+            </div>
+            <p className="mt-2.5 text-[11px] font-semibold tracking-wide text-muted uppercase">Streak</p>
+            <p className="font-display text-[24px] leading-none text-text tabular-nums">
               {streak}
             </p>
             <p className="mt-1 text-[12px] text-accent">{streak === 1 ? "day" : "days"}</p>
           </div>
-          <div className="rounded-xl border border-border bg-surface-2 px-4 py-3">
-            <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
+          <div className="card-shine rounded-xl px-4 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-accent/20 bg-accent-soft text-accent">
+              <TrendingUpIcon />
+            </div>
+            <p className="mt-2.5 text-[11px] font-semibold tracking-wide text-muted uppercase">
               This Week
             </p>
-            <p className="font-display text-[26px] leading-none text-text tabular-nums">
+            <p className="font-display text-[24px] leading-none text-text tabular-nums">
               {formatVolume(thisWeekVolume)}
             </p>
             <p className="mt-1 text-[12px] text-accent">
@@ -196,6 +205,8 @@ export default async function StatsPage() {
             </div>
           )}
         </section>
+      </div>
+        </div>
       </div>
     </div>
   );
