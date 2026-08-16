@@ -5,6 +5,13 @@ import { colors } from "@/constants/colors";
 import { formatVolume, muscleGroupLabels } from "@/constants/muscleGroups";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
+import SubTabs from "@/components/SubTabs";
+
+const progressTabs = [
+  { href: "/stats" as const, label: "Overview" },
+  { href: "/history" as const, label: "History" },
+  { href: "/progress" as const, label: "Exercises" },
+];
 
 const dayInitials = ["S", "M", "T", "W", "T", "F", "S"];
 
@@ -52,8 +59,10 @@ export default function StatsScreen() {
           <Text style={styles.back}>{"←"} Home</Text>
         </TouchableOpacity>
         <Text style={styles.eyebrow}>Progress</Text>
-        <Text style={styles.title}>Stats</Text>
+        <Text style={styles.title}>Overview</Text>
       </View>
+
+      <SubTabs tabs={progressTabs} active="/stats" />
 
       <View style={styles.statsRow}>
         <View style={styles.statCard}>

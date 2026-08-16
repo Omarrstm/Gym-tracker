@@ -68,6 +68,7 @@ export type TodayItem = {
   targetSets: number | null;
   targetReps: number | null;
   loggedCount: number;
+  workingSetsLoggedToday: number;
 };
 
 export type TodayResponse = {
@@ -249,6 +250,18 @@ export type ExerciseHistoryResponse = {
 
 export function getExerciseHistory(token: string, exerciseId: string) {
   return request<ExerciseHistoryResponse>(`/api/mobile/history/${exerciseId}`, { token });
+}
+
+export type ProgressExercise = {
+  exerciseId: string;
+  name: string;
+  muscleGroup: string;
+  sessionCount: number;
+  lastDate: string;
+};
+
+export function getProgressExercises(token: string) {
+  return request<{ exercises: ProgressExercise[] }>("/api/mobile/progress", { token });
 }
 
 export type StatsResponse = {

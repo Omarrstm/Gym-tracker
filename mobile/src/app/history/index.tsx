@@ -5,6 +5,13 @@ import { colors } from "@/constants/colors";
 import { muscleGroupLabels } from "@/constants/muscleGroups";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
+import SubTabs from "@/components/SubTabs";
+
+const progressTabs = [
+  { href: "/stats" as const, label: "Overview" },
+  { href: "/history" as const, label: "History" },
+  { href: "/progress" as const, label: "Exercises" },
+];
 
 export default function HistoryScreen() {
   const { token } = useAuth();
@@ -37,11 +44,10 @@ export default function HistoryScreen() {
           <TouchableOpacity onPress={() => router.push("/history/prs")}>
             <Text style={styles.headerLink}>All PRs</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/stats")}>
-            <Text style={styles.headerLink}>Stats</Text>
-          </TouchableOpacity>
         </View>
       </View>
+
+      <SubTabs tabs={progressTabs} active="/history" />
 
       {groups === null ? (
         <ActivityIndicator color={colors.accent} style={{ marginTop: 20 }} />

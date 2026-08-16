@@ -20,6 +20,16 @@ function formatVolume(kg: number): string {
   return `${Math.round(kg)} kg`;
 }
 
+function SetDots({ done, target }: { done: number; target: number }) {
+  return (
+    <View style={styles.setDots}>
+      {Array.from({ length: target }).map((_, i) => (
+        <View key={i} style={[styles.setDot, i < done && styles.setDotFilled]} />
+      ))}
+    </View>
+  );
+}
+
 function LogSetRow({
   item,
   token,
@@ -31,11 +41,15 @@ function LogSetRow({
 }) {
   const [open, setOpen] = useState(false);
   const [weight, setWeight] = useState(item.targetWeight != null ? String(item.targetWeight) : "");
-  const [sets, setSets] = useState(item.targetSets != null ? String(item.targetSets) : "");
   const [reps, setReps] = useState(item.targetReps != null ? String(item.targetReps) : "");
+  const [isWarmup, setIsWarmup] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [logged, setLogged] = useState(item.loggedCount);
+
+  const target = item.targetSets;
+  const doneSets = item.workingSetsLoggedToday;
+  const isComplete = target != null && doneSets >= target;
+  const nextSetNumber = doneSets + 1;
 
   async function handleSubmit() {
     setError(null);
@@ -44,11 +58,12 @@ function LogSetRow({
       const result = await api.logSet(token, {
         exerciseId: item.exercise.id,
         weight: Number(weight),
-        sets: Number(sets),
+        sets: 1,
         reps: Number(reps),
+        isWarmup,
       });
-      setLogged((n) => n + 1);
       setOpen(false);
+      setIsWarmup(false);
       onLogged(result.isNewPR);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Couldn't log this set.");
@@ -62,21 +77,35 @@ function LogSetRow({
       <TouchableOpacity style={styles.cardHeader} onPress={() => setOpen((v) => !v)}>
         <View style={styles.cardHeaderText}>
           <Text style={styles.exerciseName}>{item.exercise.name}</Text>
-          <Text style={styles.exerciseTarget}>
-            {item.targetWeight != null && item.targetSets != null && item.targetReps != null
-              ? `${item.targetWeight} kg × ${item.targetSets} × ${item.targetReps}`
-              : "No target set"}
-          </Text>
+          {target != null ? (
+            <View style={styles.targetRow}>
+              <Text style={styles.exerciseTarget}>
+                {doneSets}/{target} sets
+              </Text>
+              <SetDots done={doneSets} target={target} />
+            </View>
+          ) : (
+            <Text style={styles.exerciseTarget}>
+              {doneSets > 0 ? `${doneSets} logged` : "No target set"}
+            </Text>
+          )}
         </View>
-        {logged > 0 && (
+        {(isComplete || (target == null && doneSets > 0)) && (
           <View style={styles.checkBadge}>
-            <Text style={styles.checkBadgeText}>{logged}</Text>
+            <Text style={styles.checkBadgeText}>✓</Text>
           </View>
         )}
       </TouchableOpacity>
 
       {open && (
         <View style={styles.logForm}>
+          <Text style={styles.loggingLabel}>
+            {isComplete
+              ? "Target complete — logging an extra set"
+              : target != null
+                ? `Logging set ${nextSetNumber} of ${target}`
+                : `Logging set ${nextSetNumber}`}
+          </Text>
           <View style={styles.logInputsRow}>
             <View style={styles.logInputField}>
               <Text style={styles.label}>Weight</Text>
@@ -84,16 +113,6 @@ function LogSetRow({
                 value={weight}
                 onChangeText={setWeight}
                 keyboardType="decimal-pad"
-                style={styles.smallInput}
-                placeholderTextColor={colors.muted}
-              />
-            </View>
-            <View style={styles.logInputField}>
-              <Text style={styles.label}>Sets</Text>
-              <TextInput
-                value={sets}
-                onChangeText={setSets}
-                keyboardType="number-pad"
                 style={styles.smallInput}
                 placeholderTextColor={colors.muted}
               />
@@ -109,16 +128,30 @@ function LogSetRow({
               />
             </View>
           </View>
+          <TouchableOpacity
+            style={[styles.warmupToggle, isWarmup && styles.warmupToggleActive]}
+            onPress={() => setIsWarmup((v) => !v)}
+          >
+            <Text style={[styles.warmupToggleText, isWarmup && styles.warmupToggleTextActive]}>
+              {isWarmup ? "Warm-up set" : "Mark as warm-up"}
+            </Text>
+          </TouchableOpacity>
           {error && <Text style={styles.error}>{error}</Text>}
           <TouchableOpacity
-            style={[styles.logButton, (!weight || !sets || !reps || pending) && styles.submitDisabled]}
+            style={[styles.logButton, (!weight || !reps || pending) && styles.submitDisabled]}
             onPress={handleSubmit}
-            disabled={!weight || !sets || !reps || pending}
+            disabled={!weight || !reps || pending}
           >
             {pending ? (
               <ActivityIndicator color={colors.bg} />
             ) : (
-              <Text style={styles.logButtonText}>{logged > 0 ? "Log Another Set" : "Log Set"}</Text>
+              <Text style={styles.logButtonText}>
+                {isComplete
+                  ? "Log Extra Set"
+                  : target != null
+                    ? `Log Set ${nextSetNumber} of ${target}`
+                    : `Log Set ${nextSetNumber}`}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -190,23 +223,14 @@ export default function HomeScreen() {
           <TouchableOpacity onPress={() => router.push("/programs")}>
             <Text style={styles.headerLink}>Programs</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/history")}>
-            <Text style={styles.headerLink}>History</Text>
-          </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("/stats")}>
-            <Text style={styles.headerLink}>Stats</Text>
+            <Text style={styles.headerLink}>Progress</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/coaches")}>
+            <Text style={styles.headerLink}>Coaching</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("/profile")}>
             <Text style={styles.headerLink}>Profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/coaches")}>
-            <Text style={styles.headerLink}>Coaches</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/coaches/mine")}>
-            <Text style={styles.headerLink}>My Coach</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/coach/profile")}>
-            <Text style={styles.headerLink}>Become a Coach</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={signOut}>
             <Text style={styles.headerLink}>Log Out</Text>
@@ -372,6 +396,16 @@ const styles = StyleSheet.create({
   cardHeaderText: { flex: 1 },
   exerciseName: { color: colors.text, fontSize: 15, fontWeight: "700" },
   exerciseTarget: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  targetRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 },
+  setDots: { flexDirection: "row", gap: 4 },
+  setDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  setDotFilled: { backgroundColor: colors.accent, borderColor: colors.accent },
   checkBadge: {
     backgroundColor: colors.accent,
     borderRadius: 999,
@@ -389,8 +423,33 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     gap: 10,
   },
+  loggingLabel: {
+    color: colors.accent,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
   logInputsRow: { flexDirection: "row", gap: 8 },
   logInputField: { flex: 1 },
+  warmupToggle: {
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface2,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  warmupToggleActive: { borderColor: colors.accentBlue, backgroundColor: colors.accentBlueSoft },
+  warmupToggleText: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  warmupToggleTextActive: { color: colors.accentBlue },
   label: {
     color: colors.muted,
     fontSize: 10,

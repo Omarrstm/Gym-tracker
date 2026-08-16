@@ -27,6 +27,7 @@ export async function GET(request: Request) {
       targetSets: item.targetSets,
       targetReps: item.targetReps,
       loggedCount: item.loggedCount,
+      workingSetsLoggedToday: item.workingSetsLoggedToday,
     })),
   });
 }

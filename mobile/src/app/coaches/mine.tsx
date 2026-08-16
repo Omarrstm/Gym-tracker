@@ -4,6 +4,13 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View
 import { colors } from "@/constants/colors";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
+import SubTabs from "@/components/SubTabs";
+
+const coachingTabs = [
+  { href: "/coaches" as const, label: "Find a Coach" },
+  { href: "/coaches/mine" as const, label: "My Coach" },
+  { href: "/coach/profile" as const, label: "Become a Coach" },
+];
 
 export default function MyCoachesScreen() {
   const { token } = useAuth();
@@ -45,6 +52,8 @@ export default function MyCoachesScreen() {
         <Text style={styles.eyebrow}>Coaching</Text>
         <Text style={styles.title}>My Coaches</Text>
       </View>
+
+      <SubTabs tabs={coachingTabs} active="/coaches/mine" />
 
       {data === null ? (
         <ActivityIndicator color={colors.accent} style={{ marginTop: 20 }} />

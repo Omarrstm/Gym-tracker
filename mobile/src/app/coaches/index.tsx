@@ -13,6 +13,13 @@ import { colors } from "@/constants/colors";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
+import SubTabs from "@/components/SubTabs";
+
+const coachingTabs = [
+  { href: "/coaches" as const, label: "Find a Coach" },
+  { href: "/coaches/mine" as const, label: "My Coach" },
+  { href: "/coach/profile" as const, label: "Become a Coach" },
+];
 
 export default function CoachesScreen() {
   const { token } = useAuth();
@@ -75,6 +82,8 @@ export default function CoachesScreen() {
         <Text style={styles.eyebrow}>Coaching</Text>
         <Text style={styles.title}>Find a Coach</Text>
       </View>
+
+      <SubTabs tabs={coachingTabs} active="/coaches" />
 
       <View style={styles.section}>
         <Text style={styles.label}>Have a Join Code?</Text>

@@ -131,6 +131,12 @@ export default function CoachHomeScreen() {
           )}
         </View>
         <View style={styles.headerLinks}>
+          <TouchableOpacity onPress={() => router.push("/programs")}>
+            <Text style={styles.headerLink}>My Programs</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/stats")}>
+            <Text style={styles.headerLink}>Progress</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("/coach/profile")}>
             <Text style={styles.headerLink}>Coach Profile</Text>
           </TouchableOpacity>
