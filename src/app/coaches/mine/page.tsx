@@ -3,8 +3,15 @@ import prisma from "@/lib/prisma";
 import { getUser } from "@/lib/dal";
 import RevokeLinkButton from "@/components/RevokeLinkButton";
 import AppHeader from "@/components/AppHeader";
+import SubTabs from "@/components/SubTabs";
 
 export const dynamic = "force-dynamic";
+
+const coachingTabs = [
+  { href: "/coaches", label: "Find a Coach" },
+  { href: "/coaches/mine", label: "My Coach" },
+  { href: "/coach/profile", label: "Become a Coach" },
+];
 
 export default async function MyCoachesPage() {
   const user = await getUser();
@@ -46,6 +53,10 @@ export default async function MyCoachesPage() {
           My Coaches
         </h1>
       </header>
+
+      <div className="mb-5">
+        <SubTabs tabs={coachingTabs} />
+      </div>
 
       <div className="flex flex-col gap-4">
         {pending.length > 0 && (

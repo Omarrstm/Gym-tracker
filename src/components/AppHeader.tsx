@@ -4,12 +4,8 @@ import { logout } from "@/app/actions";
 const links = [
   { href: "/exercises", label: "Exercise Library" },
   { href: "/program", label: "Programs" },
-  { href: "/history", label: "History" },
-  { href: "/progress", label: "Progress" },
-  { href: "/stats", label: "Stats" },
-  { href: "/coaches", label: "Coaches" },
-  { href: "/coaches/mine", label: "My Coach" },
-  { href: "/coach/profile", label: "Become a Coach" },
+  { href: "/stats", label: "Progress" },
+  { href: "/coaches", label: "Coaching" },
 ];
 
 export default function AppHeader({ userName }: { userName: string | null }) {

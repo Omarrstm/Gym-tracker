@@ -11,7 +11,14 @@ import {
   sumVolumeInRange,
 } from "@/lib/stats";
 import AppHeader from "@/components/AppHeader";
+import SubTabs from "@/components/SubTabs";
 import { FlameIcon, TrendingUpIcon } from "@/components/icons";
+
+const progressTabs = [
+  { href: "/stats", label: "Overview" },
+  { href: "/history", label: "History" },
+  { href: "/progress", label: "Exercises" },
+];
 
 export const dynamic = "force-dynamic";
 
@@ -100,8 +107,12 @@ export default async function StatsPage() {
               Progress
             </p>
             <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
-              Stats
+              Overview
             </h1>
+          </div>
+
+          <div className="pb-4">
+            <SubTabs tabs={progressTabs} />
           </div>
 
       <div className="flex flex-col gap-4 pb-6">

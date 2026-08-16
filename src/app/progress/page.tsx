@@ -3,8 +3,15 @@ import prisma from "@/lib/prisma";
 import { getUser } from "@/lib/dal";
 import { muscleGroupLabels } from "@/lib/muscleGroups";
 import AppHeader from "@/components/AppHeader";
+import SubTabs from "@/components/SubTabs";
 
 export const dynamic = "force-dynamic";
+
+const progressTabs = [
+  { href: "/stats", label: "Overview" },
+  { href: "/history", label: "History" },
+  { href: "/progress", label: "Exercises" },
+];
 
 function dayKey(d: Date) {
   return d.toISOString().slice(0, 10);
@@ -65,12 +72,16 @@ export default async function ProgressPage() {
               Progress
             </p>
             <h1 className="font-display text-[32px] leading-none tracking-wide text-text uppercase">
-              Weight Progress
+              Exercises
             </h1>
             <p className="mt-2 text-[13px] text-muted">
               Pick an exercise to see how the weight you&rsquo;re lifting has moved between
               workouts.
             </p>
+          </div>
+
+          <div className="pb-4">
+            <SubTabs tabs={progressTabs} />
           </div>
 
           {exercises.length === 0 ? (

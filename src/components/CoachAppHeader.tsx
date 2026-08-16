@@ -4,9 +4,7 @@ import { logout } from "@/app/actions";
 const links = [
   { href: "/exercises", label: "Exercise Library" },
   { href: "/program", label: "My Programs" },
-  { href: "/history", label: "History" },
-  { href: "/progress", label: "Progress" },
-  { href: "/stats", label: "Stats" },
+  { href: "/stats", label: "Progress" },
   { href: "/coach/profile", label: "Coach Profile" },
 ];
 

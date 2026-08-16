@@ -3,8 +3,15 @@ import { getUser } from "@/lib/dal";
 import CoachDirectory from "./CoachDirectory";
 import JoinCodeForm from "./JoinCodeForm";
 import AppHeader from "@/components/AppHeader";
+import SubTabs from "@/components/SubTabs";
 
 export const dynamic = "force-dynamic";
+
+const coachingTabs = [
+  { href: "/coaches", label: "Find a Coach" },
+  { href: "/coaches/mine", label: "My Coach" },
+  { href: "/coach/profile", label: "Become a Coach" },
+];
 
 export default async function CoachesPage() {
   const user = await getUser();
@@ -41,6 +48,10 @@ export default async function CoachesPage() {
               Find a Coach
             </h1>
           </header>
+
+          <div className="mb-5">
+            <SubTabs tabs={coachingTabs} />
+          </div>
 
           <div className="flex flex-col gap-4">
             <section className="card-shine rounded-2xl p-6">

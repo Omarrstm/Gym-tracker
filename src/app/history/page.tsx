@@ -3,8 +3,15 @@ import prisma from "@/lib/prisma";
 import { getUser } from "@/lib/dal";
 import HistoryLogRow from "@/components/HistoryLogRow";
 import AppHeader from "@/components/AppHeader";
+import SubTabs from "@/components/SubTabs";
 
 export const dynamic = "force-dynamic";
+
+const progressTabs = [
+  { href: "/stats", label: "Overview" },
+  { href: "/history", label: "History" },
+  { href: "/progress", label: "Exercises" },
+];
 
 function dayKey(d: Date) {
   return d.toISOString().slice(0, 10);
@@ -65,6 +72,10 @@ export default async function HistoryPage() {
             >
               All PRs
             </Link>
+          </div>
+
+          <div className="pb-4">
+            <SubTabs tabs={progressTabs} />
           </div>
 
           {groups.length === 0 ? (
