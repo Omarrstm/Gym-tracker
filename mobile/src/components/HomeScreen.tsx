@@ -15,6 +15,7 @@ import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
 import RestTimer from "@/components/RestTimer";
+import { useOfflineQueue } from "@/lib/offlineQueue";
 
 function formatVolume(kg: number): string {
   if (kg >= 1000) return `${(kg / 1000).toFixed(1)}t`;
@@ -46,28 +47,42 @@ function LogSetRow({
   const [isWarmup, setIsWarmup] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const { pending: queued, enqueue } = useOfflineQueue();
 
+  const queuedForExercise = queued.filter(
+    (q) => q.input.exerciseId === item.exercise.id && !q.input.isWarmup
+  ).length;
   const target = item.targetSets;
-  const doneSets = item.workingSetsLoggedToday;
+  const doneSets = item.workingSetsLoggedToday + queuedForExercise;
   const isComplete = target != null && doneSets >= target;
   const nextSetNumber = doneSets + 1;
 
   async function handleSubmit() {
     setError(null);
     setPending(true);
+    const input = {
+      exerciseId: item.exercise.id,
+      weight: Number(weight),
+      sets: 1,
+      reps: Number(reps),
+      isWarmup,
+    };
     try {
-      const result = await api.logSet(token, {
-        exerciseId: item.exercise.id,
-        weight: Number(weight),
-        sets: 1,
-        reps: Number(reps),
-        isWarmup,
-      });
+      const result = await api.logSet(token, input);
       setOpen(false);
       setIsWarmup(false);
       onLogged(result.isNewPR);
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Couldn't log this set.");
+      if (e instanceof ApiError) {
+        setError(e.message);
+      } else {
+        // Not a server rejection -- most likely offline. Queue it instead of
+        // losing the set; it'll sync automatically once back online.
+        await enqueue(input);
+        setOpen(false);
+        setIsWarmup(false);
+        onLogged(false);
+      }
     } finally {
       setPending(false);
     }
@@ -164,6 +179,7 @@ function LogSetRow({
 export default function HomeScreen() {
   const { token, user, signOut } = useAuth();
   const router = useRouter();
+  const { isOnline, pending: queued } = useOfflineQueue();
   const [data, setData] = useState<api.TodayResponse | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [prBanner, setPrBanner] = useState(false);
@@ -171,8 +187,13 @@ export default function HomeScreen() {
 
   const load = useCallback(async () => {
     if (!token) return;
-    const result = await api.getToday(token);
-    setData(result);
+    try {
+      const result = await api.getToday(token);
+      setData(result);
+    } catch {
+      // Offline or a transient failure -- keep showing the last known data
+      // rather than blocking the screen on a failed refresh.
+    }
   }, [token]);
 
   useEffect(() => {
@@ -248,6 +269,18 @@ export default function HomeScreen() {
       {prBanner && (
         <View style={styles.prBanner}>
           <Text style={styles.prBannerText}>New PR!</Text>
+        </View>
+      )}
+
+      {(!isOnline || queued.length > 0) && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineBannerText}>
+            {!isOnline
+              ? queued.length > 0
+                ? `Offline — ${queued.length} ${queued.length === 1 ? "set" : "sets"} will sync automatically`
+                : "Offline — sets you log will sync automatically"
+              : `Syncing ${queued.length} ${queued.length === 1 ? "set" : "sets"}...`}
+          </Text>
         </View>
       )}
 
@@ -346,6 +379,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   prBannerText: { color: colors.bg, fontWeight: "800", textTransform: "uppercase", fontSize: 12 },
+  offlineBanner: {
+    borderWidth: 1,
+    borderColor: colors.accentBlue,
+    backgroundColor: colors.accentBlueSoft,
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  offlineBannerText: { color: colors.accentBlue, fontSize: 12, fontWeight: "700", textAlign: "center" },
   statsRow: { flexDirection: "row", gap: 10 },
   statCard: {
     flex: 1,
