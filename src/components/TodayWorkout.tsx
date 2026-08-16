@@ -82,12 +82,11 @@ function LogSetRow({
   const [notes, setNotes] = useState("");
   const [isWarmup, setIsWarmup] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sessionSetsLogged, setSessionSetsLogged] = useState(0);
   const [newPR, setNewPR] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const target = item.targetSets;
-  const doneSets = item.workingSetsLoggedToday + sessionSetsLogged;
+  const doneSets = item.workingSetsLoggedToday;
   const isComplete = target != null && doneSets >= target;
   const nextSetNumber = doneSets + 1;
 
@@ -107,7 +106,6 @@ function LogSetRow({
           notes: notes.trim() === "" ? null : notes.trim(),
           isWarmup,
         });
-        if (!isWarmup) setSessionSetsLogged((c) => c + 1);
         setOpen(false);
         setRir("");
         setNotes("");
