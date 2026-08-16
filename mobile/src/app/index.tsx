@@ -6,9 +6,10 @@ import AuthScreen from "@/components/AuthScreen";
 import WelcomeScreen from "@/components/WelcomeScreen";
 import HomeScreen from "@/components/HomeScreen";
 import CoachHomeScreen from "@/components/CoachHomeScreen";
+import LockScreen from "@/components/LockScreen";
 
 export default function Index() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isLocked } = useAuth();
   const [authMode, setAuthMode] = useState<"login" | "signup" | null>(null);
 
   if (isLoading) {
@@ -25,5 +26,8 @@ export default function Index() {
     }
     return <AuthScreen initialMode={authMode} onBack={() => setAuthMode(null)} />;
   }
+
+  if (isLocked) return <LockScreen />;
+
   return user.isCoach ? <CoachHomeScreen /> : <HomeScreen />;
 }

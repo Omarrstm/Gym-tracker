@@ -1,9 +1,10 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Redirect, useFocusEffect, useRouter } from "expo-router";
 import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -13,6 +14,7 @@ import { colors } from "@/constants/colors";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
+import { isBiometricAvailable, authenticateWithBiometrics } from "@/lib/biometrics";
 
 function Field({
   label,
@@ -52,9 +54,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function ProfileScreen() {
-  const { token, signOut } = useAuth();
+  const { token, signOut, biometricLockEnabled, setBiometricLockEnabled } = useAuth();
   const router = useRouter();
   const [data, setData] = useState<api.ProfileResponse | null>(null);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricPending, setBiometricPending] = useState(false);
+  const [biometricError, setBiometricError] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [nameStatus, setNameStatus] = useState<string | null>(null);
@@ -96,7 +101,30 @@ export default function ProfileScreen() {
     }, [load])
   );
 
+  useEffect(() => {
+    isBiometricAvailable().then(setBiometricAvailable);
+  }, []);
+
   if (!token) return <Redirect href="/" />;
+
+  async function handleToggleBiometric(next: boolean) {
+    setBiometricError(null);
+    if (!next) {
+      await setBiometricLockEnabled(false);
+      return;
+    }
+    setBiometricPending(true);
+    try {
+      const success = await authenticateWithBiometrics();
+      if (success) {
+        await setBiometricLockEnabled(true);
+      } else {
+        setBiometricError("Couldn't verify — lock not enabled.");
+      }
+    } finally {
+      setBiometricPending(false);
+    }
+  }
 
   async function handleSaveName() {
     if (!token) return;
@@ -203,6 +231,34 @@ export default function ProfileScreen() {
             <Text style={styles.saveButtonText}>Save</Text>
           )}
         </TouchableOpacity>
+      </Section>
+
+      <Section title="Security">
+        {biometricAvailable ? (
+          <>
+            <View style={styles.switchRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.switchLabel}>Require Face ID / Fingerprint</Text>
+                <Text style={styles.switchHint}>
+                  Lock the app behind biometric verification each time you open it.
+                </Text>
+              </View>
+              <Switch
+                value={biometricLockEnabled}
+                onValueChange={handleToggleBiometric}
+                disabled={biometricPending}
+                trackColor={{ false: colors.border, true: colors.accentSoft }}
+                thumbColor={biometricLockEnabled ? colors.accent : colors.muted}
+              />
+            </View>
+            {biometricError && <Text style={styles.error}>{biometricError}</Text>}
+          </>
+        ) : (
+          <Text style={styles.emptyText}>
+            No biometric hardware enrolled on this device — set up Face ID or a fingerprint in your
+            phone&rsquo;s settings to enable this.
+          </Text>
+        )}
       </Section>
 
       <Section title="Body Stats">
@@ -389,6 +445,9 @@ const styles = StyleSheet.create({
   },
   saveButtonDisabled: { opacity: 0.5 },
   saveButtonText: { color: colors.bg, fontWeight: "800", fontSize: 12, textTransform: "uppercase" },
+  switchRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  switchLabel: { color: colors.text, fontSize: 14, fontWeight: "700" },
+  switchHint: { color: colors.muted, fontSize: 12, marginTop: 2, lineHeight: 16 },
   statsRow: { flexDirection: "row", gap: 10, marginBottom: 4 },
   statCard: {
     flex: 1,
