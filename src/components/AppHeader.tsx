@@ -14,7 +14,7 @@ const links = [
 export default function AppHeader({ userName }: { userName: string | null }) {
   return (
     <header className="flex flex-col gap-4 border-b border-border/70 py-5 lg:flex-row lg:items-center lg:justify-between">
-      <Link href="/" className="font-display text-[20px] tracking-[0.12em] text-text uppercase">
+      <Link href="/" prefetch={false} className="font-display text-[20px] tracking-[0.12em] text-text uppercase">
         Gym Tracker
       </Link>
       <nav className="flex flex-wrap items-center gap-x-5 gap-y-2">
@@ -22,6 +22,7 @@ export default function AppHeader({ userName }: { userName: string | null }) {
           <Link
             key={link.href}
             href={link.href}
+            prefetch={false}
             className="text-[13px] font-semibold tracking-wide text-muted hover:text-accent"
           >
             {link.label}
@@ -29,6 +30,7 @@ export default function AppHeader({ userName }: { userName: string | null }) {
         ))}
         <Link
           href="/profile"
+          prefetch={false}
           className="text-[13px] font-semibold tracking-wide text-muted hover:text-accent"
         >
           {userName}
