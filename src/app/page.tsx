@@ -53,20 +53,18 @@ export default async function Home() {
         />
       </div>
 
-      <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col">
-        <header className="flex items-start justify-between border-b border-border/70 px-4 pt-6 pb-5">
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-10">
+        <header className="flex flex-col gap-6 border-b border-border/70 pt-8 pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-3 py-1 text-[11px] font-semibold tracking-wide text-accent uppercase">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" />
               {dayLabels[today]} &middot; {todayLabel}
             </span>
-            <h1 className="mt-3 font-display text-[36px] leading-[0.95] tracking-wide text-text uppercase">
-              Welcome back,
-              <br />
-              <span className="text-accent">{(user.name ?? "there").split(" ")[0]}</span>
+            <h1 className="mt-3 font-display text-[36px] leading-[0.95] tracking-wide text-text uppercase lg:text-[44px]">
+              Welcome back, <span className="text-accent">{(user.name ?? "there").split(" ")[0]}</span>
             </h1>
           </div>
-          <div className="mt-1 flex flex-col items-end gap-1.5">
+          <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 lg:justify-end">
             <Link
               href="/exercises"
               className="text-[12px] font-semibold tracking-wide text-muted underline-offset-2 hover:text-accent hover:underline"
@@ -123,100 +121,108 @@ export default async function Home() {
                 Log Out
               </button>
             </form>
-          </div>
+          </nav>
         </header>
 
-        <div className="flex flex-col gap-3 px-4 pt-4 pb-6">
-          {program && items.length > 0 && (
-            <Link
-              href="/workout"
-              className="flex items-center justify-between rounded-2xl bg-accent px-5 py-4 text-bg shadow-lg"
-            >
-              <span>
-                <p className="text-[11px] font-bold tracking-wide uppercase opacity-70">
-                  {items.length} {items.length === 1 ? "exercise" : "exercises"} &middot;{" "}
-                  {loggedCount}/{items.length} logged
-                </p>
-                <p className="font-display text-[22px] leading-none tracking-wide uppercase">
-                  Start Your {programDay?.label || `${dayLabels[today]} Workout`}
-                </p>
-              </span>
-              <span className="font-display text-[22px]">&rarr;</span>
-            </Link>
-          )}
-
-          {program && items.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-border px-5 py-4">
-              {programDay?.notes && (
-                <p className="mb-2 rounded-lg border border-accent/30 bg-accent-soft px-3 py-2 text-[13px] leading-relaxed text-accent">
-                  {programDay.notes}
-                </p>
-              )}
-              <p className="text-[13px] text-muted">
-                Rest day &mdash; nothing scheduled for today.
-              </p>
+        <div className="grid grid-cols-1 gap-4 py-6 lg:grid-cols-3 lg:gap-6 lg:py-10">
+          <div className="flex flex-col gap-4 lg:col-span-2">
+            {program && items.length > 0 && (
               <Link
-                href="/exercises"
-                className="mt-1 inline-block text-[13px] font-semibold text-accent underline-offset-2 hover:underline"
+                href="/workout"
+                className="flex items-center justify-between rounded-2xl bg-accent px-6 py-6 text-bg shadow-lg lg:px-8"
               >
-                Log something anyway
+                <span>
+                  <p className="text-[11px] font-bold tracking-wide uppercase opacity-70">
+                    {items.length} {items.length === 1 ? "exercise" : "exercises"} &middot;{" "}
+                    {loggedCount}/{items.length} logged
+                  </p>
+                  <p className="font-display text-[24px] leading-none tracking-wide uppercase lg:text-[28px]">
+                    Start Your {programDay?.label || `${dayLabels[today]} Workout`}
+                  </p>
+                </span>
+                <span className="font-display text-[26px]">&rarr;</span>
               </Link>
-            </div>
-          )}
+            )}
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-border bg-surface-2 px-4 py-3">
-              <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
-                Streak
-              </p>
-              <p className="font-display text-[24px] leading-none text-text tabular-nums">
-                {streak}
-              </p>
-              <p className="mt-1 text-[12px] text-accent">{streak === 1 ? "day" : "days"}</p>
-            </div>
-            <div className="rounded-xl border border-border bg-surface-2 px-4 py-3">
-              <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
-                This Week
-              </p>
-              <p className="font-display text-[24px] leading-none text-text tabular-nums">
-                {formatVolume(thisWeekVolume)}
-              </p>
-              <p className="mt-1 text-[12px] text-accent">volume lifted</p>
-            </div>
+            {program && items.length === 0 && (
+              <div className="flex flex-1 flex-col justify-center rounded-2xl border border-dashed border-border px-6 py-8 lg:px-8">
+                {programDay?.notes && (
+                  <p className="mb-2 rounded-lg border border-accent/30 bg-accent-soft px-3 py-2 text-[13px] leading-relaxed text-accent">
+                    {programDay.notes}
+                  </p>
+                )}
+                <p className="text-[13px] text-muted">
+                  Rest day &mdash; nothing scheduled for today.
+                </p>
+                <Link
+                  href="/exercises"
+                  className="mt-1 inline-block text-[13px] font-semibold text-accent underline-offset-2 hover:underline"
+                >
+                  Log something anyway
+                </Link>
+              </div>
+            )}
+
+            {!program && (
+              <div className="flex flex-1 flex-col justify-center rounded-2xl border border-dashed border-border px-6 py-8 text-center lg:px-8">
+                <p className="text-[13px] text-muted">
+                  Once you build a program, your daily workout will show up here.
+                </p>
+                <Link
+                  href="/exercises"
+                  className="mt-1 inline-block text-[13px] font-semibold text-accent underline-offset-2 hover:underline"
+                >
+                  Browse exercises to get started
+                </Link>
+              </div>
+            )}
           </div>
 
-          {program ? (
-            <Link
-              href={`/program/${program.id}`}
-              className="flex items-center justify-between rounded-xl border border-border bg-surface-2 px-4 py-3"
-            >
-              <span>
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-xl border border-border bg-surface-2 px-4 py-3">
                 <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
-                  Active Program
+                  Streak
                 </p>
-                <p className="text-[14px] font-semibold text-text">{program.name}</p>
-              </span>
-              <span className="text-[12px] font-semibold text-accent">View &rarr;</span>
-            </Link>
-          ) : (
-            <Link
-              href="/program"
-              className="flex items-center justify-between rounded-xl border border-dashed border-border px-4 py-3"
-            >
-              <span className="text-[13px] text-muted">No active program yet</span>
-              <span className="text-[12px] font-semibold text-accent">Create one &rarr;</span>
-            </Link>
-          )}
+                <p className="font-display text-[24px] leading-none text-text tabular-nums">
+                  {streak}
+                </p>
+                <p className="mt-1 text-[12px] text-accent">{streak === 1 ? "day" : "days"}</p>
+              </div>
+              <div className="rounded-xl border border-border bg-surface-2 px-4 py-3">
+                <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
+                  This Week
+                </p>
+                <p className="font-display text-[24px] leading-none text-text tabular-nums">
+                  {formatVolume(thisWeekVolume)}
+                </p>
+                <p className="mt-1 text-[12px] text-accent">volume lifted</p>
+              </div>
+            </div>
 
-          {!program && (
-            <p className="px-1 text-[13px] text-muted">
-              Once you build a program, your daily workout will show up here.{" "}
-              <Link href="/exercises" className="font-semibold text-accent hover:underline">
-                Browse exercises
-              </Link>{" "}
-              to get started.
-            </p>
-          )}
+            {program ? (
+              <Link
+                href={`/program/${program.id}`}
+                className="flex items-center justify-between rounded-xl border border-border bg-surface-2 px-4 py-3"
+              >
+                <span>
+                  <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">
+                    Active Program
+                  </p>
+                  <p className="text-[14px] font-semibold text-text">{program.name}</p>
+                </span>
+                <span className="text-[12px] font-semibold text-accent">View &rarr;</span>
+              </Link>
+            ) : (
+              <Link
+                href="/program"
+                className="flex items-center justify-between rounded-xl border border-dashed border-border px-4 py-3"
+              >
+                <span className="text-[13px] text-muted">No active program yet</span>
+                <span className="text-[12px] font-semibold text-accent">Create one &rarr;</span>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </div>
