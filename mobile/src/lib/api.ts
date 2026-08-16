@@ -252,6 +252,22 @@ export function getExerciseHistory(token: string, exerciseId: string) {
   return request<ExerciseHistoryResponse>(`/api/mobile/history/${exerciseId}`, { token });
 }
 
+export type ExerciseLibraryEntry = {
+  id: string;
+  name: string;
+  muscleGroup: string;
+  imageUrl: string | null;
+  description: string | null;
+  createdByUserId: string | null;
+};
+
+export function getExerciseLibrary(token: string) {
+  return request<{ exercises: ExerciseLibraryEntry[]; prByExercise: Record<string, number> }>(
+    "/api/mobile/exercises",
+    { token }
+  );
+}
+
 export type ProgressExercise = {
   exerciseId: string;
   name: string;

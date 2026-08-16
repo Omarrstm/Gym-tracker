@@ -224,6 +224,9 @@ export default function HomeScreen() {
           </Text>
         </View>
         <View style={styles.headerLinks}>
+          <TouchableOpacity onPress={() => router.push("/exercises")}>
+            <Text style={styles.headerLink}>Exercise Library</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("/programs")}>
             <Text style={styles.headerLink}>Programs</Text>
           </TouchableOpacity>

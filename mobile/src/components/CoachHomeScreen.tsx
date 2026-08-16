@@ -131,6 +131,9 @@ export default function CoachHomeScreen() {
           )}
         </View>
         <View style={styles.headerLinks}>
+          <TouchableOpacity onPress={() => router.push("/exercises")}>
+            <Text style={styles.headerLink}>Exercise Library</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("/programs")}>
             <Text style={styles.headerLink}>My Programs</Text>
           </TouchableOpacity>
