@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { MuscleGroup } from "@/generated/prisma/client";
-import { muscleGroupLabels } from "@/lib/muscleGroups";
+import { muscleGroupLabels, muscleGroupOrder } from "@/lib/muscleGroups";
 
 type ExerciseOption = { id: string; name: string; muscleGroup: MuscleGroup };
 
@@ -34,14 +34,16 @@ export default function ExerciseCombobox({
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [muscleFilter, setMuscleFilter] = useState<MuscleGroup | null>(null);
 
   const selected = options.find((o) => o.id === value) ?? null;
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (q === "") return options.slice(0, 40);
-    return options.filter((o) => o.name.toLowerCase().includes(q)).slice(0, 40);
-  }, [options, query]);
+    const byQuery = q === "" ? options : options.filter((o) => o.name.toLowerCase().includes(q));
+    const byMuscle = muscleFilter ? byQuery.filter((o) => o.muscleGroup === muscleFilter) : byQuery;
+    return byMuscle.slice(0, 40);
+  }, [options, query, muscleFilter]);
 
   return (
     <div>
@@ -75,6 +77,42 @@ export default function ExerciseCombobox({
           </button>
         )}
       </div>
+
+      {open && (
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setMuscleFilter(null);
+            }}
+            className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase ${
+              muscleFilter === null
+                ? "border-accent bg-accent-soft text-accent"
+                : "border-border text-muted hover:text-text"
+            }`}
+          >
+            All
+          </button>
+          {muscleGroupOrder.map((mg) => (
+            <button
+              key={mg}
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setMuscleFilter((current) => (current === mg ? null : mg));
+              }}
+              className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase ${
+                muscleFilter === mg
+                  ? "border-accent bg-accent-soft text-accent"
+                  : "border-border text-muted hover:text-text"
+              }`}
+            >
+              {muscleGroupLabels[mg]}
+            </button>
+          ))}
+        </div>
+      )}
 
       {open && (
         <div className="mt-1.5 max-h-48 overflow-y-auto rounded-lg border border-border bg-surface">
