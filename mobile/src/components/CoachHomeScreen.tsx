@@ -11,9 +11,13 @@ import {
   View,
 } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
+import ShineCard from "@/components/ShineCard";
+import Glow from "@/components/Glow";
+import FadeIn from "@/components/FadeIn";
 
 function daysLeft(trialEndsAt: string | null): number | null {
   if (!trialEndsAt) return null;
@@ -114,123 +118,134 @@ export default function CoachHomeScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accentBlue} />
       }
     >
-      <View style={styles.header}>
-        <View>
-          <View style={styles.badge}>
-            <View style={styles.badgeDot} />
-            <Text style={styles.badgeText}>Coach</Text>
-          </View>
-          <Text style={styles.title}>
-            Coach Dashboard,{"\n"}
-            <Text style={styles.titleAccent}>{(user?.name ?? "there").split(" ")[0]}</Text>
-          </Text>
-          {data.profile.subscriptionStatus === "TRIALING" && trialDays !== null && (
-            <Text style={styles.trialText}>
-              Free trial &middot; {trialDays} {trialDays === 1 ? "day" : "days"} left
+      <View style={styles.headerWrap}>
+        <Glow color={colors.accentBlue} />
+        <View style={styles.header}>
+          <View>
+            <View style={styles.badge}>
+              <View style={styles.badgeDot} />
+              <Text style={styles.badgeText}>Coach</Text>
+            </View>
+            <Text style={styles.title}>
+              Coach Dashboard,{"\n"}
+              <Text style={styles.titleAccent}>{(user?.name ?? "there").split(" ")[0]}</Text>
             </Text>
-          )}
-        </View>
-        <View style={styles.headerLinks}>
-          <TouchableOpacity onPress={() => router.push("/exercises")}>
-            <Text style={styles.headerLink}>Exercise Library</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/programs")}>
-            <Text style={styles.headerLink}>My Programs</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/stats")}>
-            <Text style={styles.headerLink}>Progress</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/coach/profile")}>
-            <Text style={styles.headerLink}>Coach Profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={signOut}>
-            <Text style={styles.headerLink}>Log Out</Text>
-          </TouchableOpacity>
+            {data.profile.subscriptionStatus === "TRIALING" && trialDays !== null && (
+              <Text style={styles.trialText}>
+                Free trial &middot; {trialDays} {trialDays === 1 ? "day" : "days"} left
+              </Text>
+            )}
+          </View>
+          <View style={styles.headerLinks}>
+            <TouchableOpacity onPress={() => router.push("/exercises")}>
+              <Text style={styles.headerLink}>Exercise Library</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/programs")}>
+              <Text style={styles.headerLink}>My Programs</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/stats")}>
+              <Text style={styles.headerLink}>Progress</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/coach/profile")}>
+              <Text style={styles.headerLink}>Coach Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={signOut}>
+              <Text style={styles.headerLink}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
-      <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Athletes</Text>
-          <Text style={styles.statValue}>{data.roster.length}</Text>
-          <Text style={styles.statSub}>{activeToday} active this week</Text>
+      <FadeIn>
+        <View style={styles.statsRow}>
+          <ShineCard style={styles.statCardOuter} contentStyle={styles.statCardInner}>
+            <Text style={styles.statLabel}>Athletes</Text>
+            <Text style={styles.statValue}>{data.roster.length}</Text>
+            <Text style={styles.statSub}>{activeToday} active this week</Text>
+          </ShineCard>
+          <ShineCard style={styles.statCardOuter} contentStyle={styles.statCardInner}>
+            <Text style={styles.statLabel}>Requests</Text>
+            <Text style={styles.statValue}>{data.pendingRequests.length}</Text>
+            <Text style={styles.statSub}>pending</Text>
+          </ShineCard>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Requests</Text>
-          <Text style={styles.statValue}>{data.pendingRequests.length}</Text>
-          <Text style={styles.statSub}>pending</Text>
-        </View>
-      </View>
+      </FadeIn>
 
       {data.pendingRequests.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Requests</Text>
-          {data.pendingRequests.map((r) => (
-            <RequestRow
-              key={r.athleteId}
-              athleteId={r.athleteId}
-              name={r.name}
-              onRespond={handleRespond}
-            />
-          ))}
-        </View>
+        <FadeIn delay={60}>
+          <ShineCard contentStyle={styles.sectionInner}>
+            <Text style={styles.sectionTitle}>Requests</Text>
+            {data.pendingRequests.map((r) => (
+              <RequestRow
+                key={r.athleteId}
+                athleteId={r.athleteId}
+                name={r.name}
+                onRespond={handleRespond}
+              />
+            ))}
+          </ShineCard>
+        </FadeIn>
       )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Your Athletes</Text>
-        {data.roster.length === 0 ? (
-          <Text style={styles.emptyText}>
-            No athletes yet — invite one by email or share your join code from your coach profile.
-          </Text>
-        ) : (
-          data.roster.map((r) => (
-            <View key={r.athleteId} style={styles.athleteRow}>
-              <Text style={styles.athleteName}>{r.name ?? r.email}</Text>
-              <Text style={styles.athleteStreak}>
-                {r.streak > 0 ? `${r.streak} day streak` : "No recent activity"}
-              </Text>
-            </View>
-          ))
-        )}
-      </View>
+      <FadeIn delay={100}>
+        <ShineCard contentStyle={styles.sectionInner}>
+          <Text style={styles.sectionTitle}>Your Athletes</Text>
+          {data.roster.length === 0 ? (
+            <Text style={styles.emptyText}>
+              No athletes yet — invite one by email or share your join code from your coach profile.
+            </Text>
+          ) : (
+            data.roster.map((r) => (
+              <View key={r.athleteId} style={styles.athleteRow}>
+                <Text style={styles.athleteName}>{r.name ?? r.email}</Text>
+                <Text style={styles.athleteStreak}>
+                  {r.streak > 0 ? `${r.streak} day streak` : "No recent activity"}
+                </Text>
+              </View>
+            ))
+          )}
+        </ShineCard>
+      </FadeIn>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Invite an Athlete</Text>
-        <View style={styles.inviteRow}>
-          <TextInput
-            value={inviteEmail}
-            onChangeText={setInviteEmail}
-            placeholder="athlete@example.com"
-            placeholderTextColor={colors.muted}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            style={[styles.input, { flex: 1 }]}
-          />
-          <TouchableOpacity
-            style={[styles.inviteButton, (!inviteEmail || invitePending) && styles.disabled]}
-            onPress={handleInvite}
-            disabled={!inviteEmail || invitePending}
-          >
-            {invitePending ? (
-              <ActivityIndicator color={colors.bg} />
-            ) : (
-              <Text style={styles.inviteButtonText}>Invite</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-        {inviteError && <Text style={styles.error}>{inviteError}</Text>}
-        {inviteStatus && <Text style={styles.success}>{inviteStatus}</Text>}
-        {data.sentInvites.length > 0 && (
-          <View style={{ marginTop: 8 }}>
-            <Text style={styles.pendingLabel}>Pending Invites</Text>
-            {data.sentInvites.map((invite) => (
-              <Text key={invite.id} style={styles.pendingEmail}>
-                {invite.email}
-              </Text>
-            ))}
+      <FadeIn delay={140}>
+        <ShineCard contentStyle={styles.sectionInner}>
+          <Text style={styles.sectionTitle}>Invite an Athlete</Text>
+          <View style={styles.inviteRow}>
+            <TextInput
+              value={inviteEmail}
+              onChangeText={setInviteEmail}
+              placeholder="athlete@example.com"
+              placeholderTextColor={colors.muted}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              style={[styles.input, { flex: 1 }]}
+            />
+            <TouchableOpacity
+              style={[styles.inviteButton, (!inviteEmail || invitePending) && styles.disabled]}
+              onPress={handleInvite}
+              disabled={!inviteEmail || invitePending}
+            >
+              {invitePending ? (
+                <ActivityIndicator color={colors.bg} />
+              ) : (
+                <Text style={styles.inviteButtonText}>Invite</Text>
+              )}
+            </TouchableOpacity>
           </View>
-        )}
-      </View>
+          {inviteError && <Text style={styles.error}>{inviteError}</Text>}
+          {inviteStatus && <Text style={styles.success}>{inviteStatus}</Text>}
+          {data.sentInvites.length > 0 && (
+            <View style={{ marginTop: 8 }}>
+              <Text style={styles.pendingLabel}>Pending Invites</Text>
+              {data.sentInvites.map((invite) => (
+                <Text key={invite.id} style={styles.pendingEmail}>
+                  {invite.email}
+                </Text>
+              ))}
+            </View>
+          )}
+        </ShineCard>
+      </FadeIn>
     </ScrollView>
   );
 }
@@ -239,7 +254,8 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.bg },
   centered: { justifyContent: "center", alignItems: "center" },
   scroll: { padding: 16, paddingTop: 56, paddingBottom: 40, gap: 10 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 },
+  headerWrap: { marginBottom: 8 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   badge: {
     flexDirection: "row",
     alignItems: "center",
@@ -260,20 +276,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  title: { color: colors.text, fontSize: 26, fontWeight: "800", marginTop: 10, lineHeight: 28 },
+  title: {
+    color: colors.text,
+    fontFamily: displayFont,
+    fontSize: 32,
+    marginTop: 10,
+    lineHeight: 32,
+    letterSpacing: 0.5,
+  },
   titleAccent: { color: colors.accentBlue },
   trialText: { color: colors.muted, fontSize: 12, marginTop: 6 },
   headerLinks: { alignItems: "flex-end", gap: 10, marginTop: 6 },
   headerLink: { color: colors.muted, fontSize: 12, fontWeight: "600" },
   statsRow: { flexDirection: "row", gap: 10 },
-  statCard: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface2,
-    borderRadius: 12,
-    padding: 14,
-  },
+  statCardOuter: { flex: 1 },
+  statCardInner: { padding: 14 },
   statLabel: {
     color: colors.muted,
     fontSize: 11,
@@ -281,16 +298,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  statValue: { color: colors.text, fontSize: 24, fontWeight: "800", marginTop: 4 },
+  statValue: { color: colors.text, fontFamily: displayFont, fontSize: 30, marginTop: 4 },
   statSub: { color: colors.accentBlue, fontSize: 12, marginTop: 2 },
-  section: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: 16,
-    gap: 8,
-  },
+  sectionInner: { padding: 16, gap: 8 },
   sectionTitle: { color: colors.text, fontSize: 15, fontWeight: "800", textTransform: "uppercase" },
   emptyText: { color: colors.muted, fontSize: 13, lineHeight: 18 },
   requestRow: {

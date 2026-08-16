@@ -11,8 +11,10 @@ import {
   View,
 } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
+import FadeIn from "@/components/FadeIn";
 
 export default function AuthScreen({
   initialMode = "login",
@@ -58,6 +60,7 @@ export default function AuthScreen({
         </TouchableOpacity>
       )}
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <FadeIn>
         <Text style={styles.eyebrow}>Gym Tracker</Text>
         <Text style={styles.title}>{mode === "login" ? "Log In" : "Create Account"}</Text>
 
@@ -164,6 +167,7 @@ export default function AuthScreen({
             </Text>
           </Text>
         </TouchableOpacity>
+        </FadeIn>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -181,7 +185,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     textTransform: "uppercase",
   },
-  title: { color: colors.text, fontSize: 32, fontWeight: "800", marginBottom: 20 },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 40, marginBottom: 20, letterSpacing: 0.3 },
   field: { marginBottom: 14 },
   label: {
     color: colors.muted,

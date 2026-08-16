@@ -11,9 +11,12 @@ import {
   View,
 } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { muscleGroupLabels } from "@/constants/muscleGroups";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
+import ShineCard from "@/components/ShineCard";
+import FadeIn from "@/components/FadeIn";
 
 const muscleGroupOrder = Object.keys(muscleGroupLabels);
 
@@ -109,26 +112,30 @@ export default function ExerciseLibraryScreen() {
         ) : filtered.length === 0 ? (
           <Text style={styles.emptyText}>No exercises match &ldquo;{query}&rdquo;.</Text>
         ) : (
-          sections.map((section) => (
-            <View key={section.group} style={styles.section}>
-              <Text style={styles.sectionLabel}>{muscleGroupLabels[section.group]}</Text>
-              {section.exercises.map((ex) => (
-                <TouchableOpacity key={ex.id} style={styles.row} onPress={() => setSelected(ex)}>
-                  <View style={styles.rowIcon}>
-                    <BarbellIcon />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.exerciseName} numberOfLines={1}>
-                      {ex.name}
-                    </Text>
-                    {ex.createdByUserId && <Text style={styles.customLabel}>Custom</Text>}
-                  </View>
-                  {prByExercise[ex.id] !== undefined && (
-                    <Text style={styles.prText}>PR {prByExercise[ex.id]} kg</Text>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
+          sections.map((section, sectionIndex) => (
+            <FadeIn key={section.group} delay={sectionIndex * 40}>
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>{muscleGroupLabels[section.group]}</Text>
+                {section.exercises.map((ex) => (
+                  <TouchableOpacity key={ex.id} onPress={() => setSelected(ex)}>
+                    <ShineCard contentStyle={styles.rowInner}>
+                      <View style={styles.rowIcon}>
+                        <BarbellIcon />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.exerciseName} numberOfLines={1}>
+                          {ex.name}
+                        </Text>
+                        {ex.createdByUserId && <Text style={styles.customLabel}>Custom</Text>}
+                      </View>
+                      {prByExercise[ex.id] !== undefined && (
+                        <Text style={styles.prText}>PR {prByExercise[ex.id]} kg</Text>
+                      )}
+                    </ShineCard>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </FadeIn>
           ))
         )}
       </ScrollView>
@@ -189,7 +196,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 10,
   },
-  title: { color: colors.text, fontSize: 30, fontWeight: "800" },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 36, letterSpacing: 0.5 },
   searchInput: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -221,14 +228,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  row: {
+  rowInner: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
     padding: 12,
   },
   rowIcon: {
@@ -261,7 +264,7 @@ const styles = StyleSheet.create({
   },
   modalPr: { color: colors.muted, fontSize: 12, fontWeight: "600" },
   modalPrValue: { color: colors.text, fontWeight: "800" },
-  modalTitle: { color: colors.text, fontSize: 22, fontWeight: "800", marginTop: 4 },
+  modalTitle: { color: colors.text, fontFamily: displayFont, fontSize: 26, marginTop: 4 },
   modalDescription: { color: colors.muted, fontSize: 13, lineHeight: 18, marginTop: 8 },
   modalNoData: { color: colors.muted, fontSize: 13, marginTop: 14 },
   modalButton: {

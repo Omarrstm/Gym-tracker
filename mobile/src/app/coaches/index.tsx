@@ -10,10 +10,13 @@ import {
   View,
 } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
 import SubTabs from "@/components/SubTabs";
+import ShineCard from "@/components/ShineCard";
+import FadeIn from "@/components/FadeIn";
 
 const coachingTabs = [
   { href: "/coaches" as const, label: "Find a Coach" },
@@ -85,32 +88,34 @@ export default function CoachesScreen() {
 
       <SubTabs tabs={coachingTabs} active="/coaches" />
 
-      <View style={styles.section}>
-        <Text style={styles.label}>Have a Join Code?</Text>
-        <View style={styles.codeRow}>
-          <TextInput
-            value={code}
-            onChangeText={(t) => setCode(t.toUpperCase())}
-            placeholder="ABC123XY"
-            placeholderTextColor={colors.muted}
-            autoCapitalize="characters"
-            style={[styles.input, { flex: 1 }]}
-          />
-          <TouchableOpacity
-            style={[styles.joinButton, (!code.trim() || codePending) && styles.disabled]}
-            onPress={handleJoinByCode}
-            disabled={!code.trim() || codePending}
-          >
-            {codePending ? (
-              <ActivityIndicator color={colors.bg} />
-            ) : (
-              <Text style={styles.joinButtonText}>Join</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-        {codeError && <Text style={styles.error}>{codeError}</Text>}
-        {codeStatus && <Text style={styles.success}>{codeStatus}</Text>}
-      </View>
+      <FadeIn>
+        <ShineCard contentStyle={styles.codeSection}>
+          <Text style={styles.label}>Have a Join Code?</Text>
+          <View style={styles.codeRow}>
+            <TextInput
+              value={code}
+              onChangeText={(t) => setCode(t.toUpperCase())}
+              placeholder="ABC123XY"
+              placeholderTextColor={colors.muted}
+              autoCapitalize="characters"
+              style={[styles.input, { flex: 1 }]}
+            />
+            <TouchableOpacity
+              style={[styles.joinButton, (!code.trim() || codePending) && styles.disabled]}
+              onPress={handleJoinByCode}
+              disabled={!code.trim() || codePending}
+            >
+              {codePending ? (
+                <ActivityIndicator color={colors.bg} />
+              ) : (
+                <Text style={styles.joinButtonText}>Join</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+          {codeError && <Text style={styles.error}>{codeError}</Text>}
+          {codeStatus && <Text style={styles.success}>{codeStatus}</Text>}
+        </ShineCard>
+      </FadeIn>
 
       <TextInput
         value={query}
@@ -125,28 +130,28 @@ export default function CoachesScreen() {
       ) : filtered.length === 0 ? (
         <Text style={styles.emptyText}>No coaches match your search.</Text>
       ) : (
-        filtered.map((coach) => (
-          <TouchableOpacity
-            key={coach.userId}
-            style={styles.coachCard}
-            onPress={() => router.push(`/coaches/${coach.userId}`)}
-          >
-            <Text style={styles.coachName}>{coach.name}</Text>
-            {coach.bio && (
-              <Text style={styles.coachBio} numberOfLines={2}>
-                {coach.bio}
-              </Text>
-            )}
-            {coach.specialties.length > 0 && (
-              <View style={styles.tagRow}>
-                {coach.specialties.map((s) => (
-                  <View key={s} style={styles.tag}>
-                    <Text style={styles.tagText}>{s}</Text>
+        filtered.map((coach, index) => (
+          <FadeIn key={coach.userId} delay={index * 30}>
+            <TouchableOpacity onPress={() => router.push(`/coaches/${coach.userId}`)}>
+              <ShineCard contentStyle={styles.coachCardInner}>
+                <Text style={styles.coachName}>{coach.name}</Text>
+                {coach.bio && (
+                  <Text style={styles.coachBio} numberOfLines={2}>
+                    {coach.bio}
+                  </Text>
+                )}
+                {coach.specialties.length > 0 && (
+                  <View style={styles.tagRow}>
+                    {coach.specialties.map((s) => (
+                      <View key={s} style={styles.tag}>
+                        <Text style={styles.tagText}>{s}</Text>
+                      </View>
+                    ))}
                   </View>
-                ))}
-              </View>
-            )}
-          </TouchableOpacity>
+                )}
+              </ShineCard>
+            </TouchableOpacity>
+          </FadeIn>
         ))
       )}
     </ScrollView>
@@ -166,15 +171,8 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 10,
   },
-  title: { color: colors.text, fontSize: 30, fontWeight: "800" },
-  section: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: 16,
-    gap: 8,
-  },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 36, letterSpacing: 0.5 },
+  codeSection: { padding: 16, gap: 8 },
   label: {
     color: colors.muted,
     fontSize: 11,
@@ -205,14 +203,7 @@ const styles = StyleSheet.create({
   error: { color: colors.danger, fontSize: 12 },
   success: { color: colors.accent, fontSize: 12 },
   emptyText: { color: colors.muted, fontSize: 13, textAlign: "center", paddingVertical: 20 },
-  coachCard: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 14,
-    gap: 6,
-  },
+  coachCardInner: { padding: 14, gap: 6 },
   coachName: { color: colors.text, fontSize: 15, fontWeight: "700" },
   coachBio: { color: colors.muted, fontSize: 12.5, lineHeight: 17 },
   tagRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 2 },

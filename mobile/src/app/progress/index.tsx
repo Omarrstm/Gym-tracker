@@ -2,10 +2,13 @@ import { useCallback, useState } from "react";
 import { Redirect, useFocusEffect, useRouter } from "expo-router";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { muscleGroupLabels } from "@/constants/muscleGroups";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import SubTabs from "@/components/SubTabs";
+import ShineCard from "@/components/ShineCard";
+import FadeIn from "@/components/FadeIn";
 
 const progressTabs = [
   { href: "/stats" as const, label: "Overview" },
@@ -55,30 +58,30 @@ export default function ProgressIndexScreen() {
         </Text>
       ) : (
         <View style={styles.list}>
-          {exercises.map((ex) => (
-            <TouchableOpacity
-              key={ex.exerciseId}
-              style={styles.row}
-              onPress={() => router.push(`/progress/${ex.exerciseId}`)}
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={styles.exerciseName} numberOfLines={1}>
-                  {ex.name}
-                </Text>
-                <Text style={styles.muscleGroup}>
-                  {muscleGroupLabels[ex.muscleGroup] ?? ex.muscleGroup}
-                </Text>
-              </View>
-              <View style={{ alignItems: "flex-end" }}>
-                <Text style={styles.sessionCount}>
-                  {ex.sessionCount} {ex.sessionCount === 1 ? "workout" : "workouts"}
-                </Text>
-                <Text style={styles.lastDate}>
-                  Last{" "}
-                  {new Date(ex.lastDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                </Text>
-              </View>
-            </TouchableOpacity>
+          {exercises.map((ex, index) => (
+            <FadeIn key={ex.exerciseId} delay={index * 30}>
+              <TouchableOpacity onPress={() => router.push(`/progress/${ex.exerciseId}`)}>
+                <ShineCard contentStyle={styles.rowInner}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.exerciseName} numberOfLines={1}>
+                      {ex.name}
+                    </Text>
+                    <Text style={styles.muscleGroup}>
+                      {muscleGroupLabels[ex.muscleGroup] ?? ex.muscleGroup}
+                    </Text>
+                  </View>
+                  <View style={{ alignItems: "flex-end" }}>
+                    <Text style={styles.sessionCount}>
+                      {ex.sessionCount} {ex.sessionCount === 1 ? "workout" : "workouts"}
+                    </Text>
+                    <Text style={styles.lastDate}>
+                      Last{" "}
+                      {new Date(ex.lastDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </Text>
+                  </View>
+                </ShineCard>
+              </TouchableOpacity>
+            </FadeIn>
           ))}
         </View>
       )}
@@ -99,18 +102,14 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 10,
   },
-  title: { color: colors.text, fontSize: 30, fontWeight: "800" },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 36, letterSpacing: 0.5 },
   subtitle: { color: colors.muted, fontSize: 13, marginTop: 6, lineHeight: 18 },
   emptyText: { color: colors.muted, fontSize: 13 },
   list: { gap: 8 },
-  row: {
+  rowInner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
     padding: 12,
     gap: 10,
   },

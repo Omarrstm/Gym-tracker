@@ -1,5 +1,9 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
+import ShineCard from "@/components/ShineCard";
+import Glow from "@/components/Glow";
+import FadeIn from "@/components/FadeIn";
 
 const stats = ["Free core, forever", "No ads, ever", "Web & mobile"];
 
@@ -20,39 +24,46 @@ export default function WelcomeScreen({
   return (
     <View style={styles.flex}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.badge}>
-          <View style={styles.badgeDot} />
-          <Text style={styles.badgeText}>Free &amp; self-hosted</Text>
-        </View>
-
-        <Text style={styles.title}>
-          The workout tracker built for <Text style={styles.titleAccent}>consistent progress</Text>
-        </Text>
-        <Text style={styles.subtitle}>
-          Plan weekly programs, log every set as you lift, and watch your PRs and estimated 1RM
-          trend up over time &mdash; with coaching built in.
-        </Text>
-
-        <View style={styles.statRow}>
-          {stats.map((s) => (
-            <View key={s} style={styles.statItem}>
-              <Text style={styles.statDot}>&#9679;</Text>
-              <Text style={styles.statText}>{s}</Text>
+        <View style={styles.heroWrap}>
+          <Glow color={colors.accent} top={-40} right={-60} />
+          <FadeIn>
+            <View style={styles.badge}>
+              <View style={styles.badgeDot} />
+              <Text style={styles.badgeText}>Free &amp; self-hosted</Text>
             </View>
-          ))}
+
+            <Text style={styles.title}>
+              The workout tracker built for <Text style={styles.titleAccent}>consistent progress</Text>
+            </Text>
+            <Text style={styles.subtitle}>
+              Plan weekly programs, log every set as you lift, and watch your PRs and estimated 1RM
+              trend up over time &mdash; with coaching built in.
+            </Text>
+
+            <View style={styles.statRow}>
+              {stats.map((s) => (
+                <View key={s} style={styles.statItem}>
+                  <Text style={styles.statDot}>&#9679;</Text>
+                  <Text style={styles.statText}>{s}</Text>
+                </View>
+              ))}
+            </View>
+          </FadeIn>
         </View>
 
         <View style={styles.featureList}>
-          {features.map((f) => (
-            <View key={f.title} style={styles.featureCard}>
-              <View style={styles.featureIcon}>
-                <Text style={styles.featureIconText}>{f.icon}</Text>
-              </View>
-              <View style={styles.featureBody}>
-                <Text style={styles.featureTitle}>{f.title}</Text>
-                <Text style={styles.featureDescription}>{f.description}</Text>
-              </View>
-            </View>
+          {features.map((f, index) => (
+            <FadeIn key={f.title} delay={80 + index * 60}>
+              <ShineCard contentStyle={styles.featureCardInner}>
+                <View style={styles.featureIcon}>
+                  <Text style={styles.featureIconText}>{f.icon}</Text>
+                </View>
+                <View style={styles.featureBody}>
+                  <Text style={styles.featureTitle}>{f.title}</Text>
+                  <Text style={styles.featureDescription}>{f.description}</Text>
+                </View>
+              </ShineCard>
+            </FadeIn>
           ))}
         </View>
       </ScrollView>
@@ -72,6 +83,7 @@ export default function WelcomeScreen({
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: 24, paddingTop: 72, paddingBottom: 16, gap: 4 },
+  heroWrap: {},
   badge: {
     flexDirection: "row",
     alignItems: "center",
@@ -86,7 +98,7 @@ const styles = StyleSheet.create({
   },
   badgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent },
   badgeText: { color: colors.accent, fontSize: 11, fontWeight: "700", letterSpacing: 1, textTransform: "uppercase" },
-  title: { color: colors.text, fontSize: 34, fontWeight: "800", lineHeight: 38, marginTop: 14 },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 42, lineHeight: 42, marginTop: 14, letterSpacing: 0.3 },
   titleAccent: { color: colors.accent },
   subtitle: { color: colors.muted, fontSize: 15, lineHeight: 21, marginTop: 14 },
   statRow: { flexDirection: "row", flexWrap: "wrap", gap: 14, marginTop: 18 },
@@ -94,13 +106,9 @@ const styles = StyleSheet.create({
   statDot: { color: colors.accent, fontSize: 8 },
   statText: { color: colors.muted, fontSize: 12.5, fontWeight: "600" },
   featureList: { marginTop: 24, gap: 10 },
-  featureCard: {
+  featureCardInner: {
     flexDirection: "row",
     gap: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
     padding: 14,
   },
   featureIcon: {

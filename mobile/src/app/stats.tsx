@@ -2,10 +2,13 @@ import { useCallback, useState } from "react";
 import { Redirect, useFocusEffect, useRouter } from "expo-router";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { formatVolume, muscleGroupLabels } from "@/constants/muscleGroups";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import SubTabs from "@/components/SubTabs";
+import ShineCard, { shineCardStyles } from "@/components/ShineCard";
+import FadeIn from "@/components/FadeIn";
 
 const progressTabs = [
   { href: "/stats" as const, label: "Overview" },
@@ -64,77 +67,83 @@ export default function StatsScreen() {
 
       <SubTabs tabs={progressTabs} active="/stats" />
 
-      <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Streak</Text>
-          <Text style={styles.statValue}>{data.streak}</Text>
-          <Text style={styles.statSub}>{data.streak === 1 ? "day" : "days"}</Text>
+      <FadeIn>
+        <View style={styles.statsRow}>
+          <ShineCard style={styles.statCardOuter} contentStyle={styles.statCardInner}>
+            <Text style={styles.statLabel}>Streak</Text>
+            <Text style={styles.statValue}>{data.streak}</Text>
+            <Text style={styles.statSub}>{data.streak === 1 ? "day" : "days"}</Text>
+          </ShineCard>
+          <ShineCard style={styles.statCardOuter} contentStyle={styles.statCardInner}>
+            <Text style={styles.statLabel}>This Week</Text>
+            <Text style={styles.statValue}>{formatVolume(data.thisWeekVolume)}</Text>
+            <Text style={styles.statSub}>
+              {data.weekDelta === null
+                ? "volume lifted"
+                : `${data.weekDelta >= 0 ? "+" : ""}${data.weekDelta.toFixed(0)}% vs last week`}
+            </Text>
+          </ShineCard>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>This Week</Text>
-          <Text style={styles.statValue}>{formatVolume(data.thisWeekVolume)}</Text>
-          <Text style={styles.statSub}>
-            {data.weekDelta === null
-              ? "volume lifted"
-              : `${data.weekDelta >= 0 ? "+" : ""}${data.weekDelta.toFixed(0)}% vs last week`}
-          </Text>
-        </View>
-      </View>
+      </FadeIn>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Consistency</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.heatmapRow}>
-            <View style={styles.heatmapDayLabels}>
-              {dayInitials.map((initial, i) => (
-                <Text key={i} style={styles.heatmapDayLabel}>
-                  {i % 2 === 1 ? initial : ""}
-                </Text>
-              ))}
-            </View>
-            {data.heatmap.map((column, colIndex) => (
-              <View key={colIndex} style={styles.heatmapColumn}>
-                {column.map((day) => (
-                  <View
-                    key={day.dateKey}
-                    style={[styles.heatmapCell, { backgroundColor: levelColor[day.level] }]}
-                  />
+      <FadeIn delay={60}>
+        <ShineCard contentStyle={shineCardStyles.padded}>
+          <Text style={styles.sectionTitle}>Consistency</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.heatmapRow}>
+              <View style={styles.heatmapDayLabels}>
+                {dayInitials.map((initial, i) => (
+                  <Text key={i} style={styles.heatmapDayLabel}>
+                    {i % 2 === 1 ? initial : ""}
+                  </Text>
                 ))}
               </View>
-            ))}
-          </View>
-        </ScrollView>
-        <View style={styles.heatmapLegend}>
-          <Text style={styles.legendText}>Less</Text>
-          {([0, 1, 2, 3, 4] as const).map((level) => (
-            <View key={level} style={[styles.heatmapCell, { backgroundColor: levelColor[level] }]} />
-          ))}
-          <Text style={styles.legendText}>More</Text>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Volume by Muscle Group</Text>
-        <Text style={styles.sectionSub}>Last 30 days</Text>
-        {data.muscleGroupRanking.length === 0 ? (
-          <Text style={styles.emptyText}>Log some sets to see your training breakdown.</Text>
-        ) : (
-          data.muscleGroupRanking.map(({ muscleGroup, volume }) => (
-            <View key={muscleGroup} style={styles.mgRow}>
-              <Text style={styles.mgLabel}>{muscleGroupLabels[muscleGroup] ?? muscleGroup}</Text>
-              <View style={styles.mgBarTrack}>
-                <View
-                  style={[
-                    styles.mgBarFill,
-                    { width: `${Math.max(4, (volume / maxMuscleGroupVolume) * 100)}%` },
-                  ]}
-                />
-              </View>
-              <Text style={styles.mgVolume}>{formatVolume(volume)}</Text>
+              {data.heatmap.map((column, colIndex) => (
+                <View key={colIndex} style={styles.heatmapColumn}>
+                  {column.map((day) => (
+                    <View
+                      key={day.dateKey}
+                      style={[styles.heatmapCell, { backgroundColor: levelColor[day.level] }]}
+                    />
+                  ))}
+                </View>
+              ))}
             </View>
-          ))
-        )}
-      </View>
+          </ScrollView>
+          <View style={styles.heatmapLegend}>
+            <Text style={styles.legendText}>Less</Text>
+            {([0, 1, 2, 3, 4] as const).map((level) => (
+              <View key={level} style={[styles.heatmapCell, { backgroundColor: levelColor[level] }]} />
+            ))}
+            <Text style={styles.legendText}>More</Text>
+          </View>
+        </ShineCard>
+      </FadeIn>
+
+      <FadeIn delay={100}>
+        <ShineCard contentStyle={shineCardStyles.padded}>
+          <Text style={styles.sectionTitle}>Volume by Muscle Group</Text>
+          <Text style={styles.sectionSub}>Last 30 days</Text>
+          {data.muscleGroupRanking.length === 0 ? (
+            <Text style={styles.emptyText}>Log some sets to see your training breakdown.</Text>
+          ) : (
+            data.muscleGroupRanking.map(({ muscleGroup, volume }) => (
+              <View key={muscleGroup} style={styles.mgRow}>
+                <Text style={styles.mgLabel}>{muscleGroupLabels[muscleGroup] ?? muscleGroup}</Text>
+                <View style={styles.mgBarTrack}>
+                  <View
+                    style={[
+                      styles.mgBarFill,
+                      { width: `${Math.max(4, (volume / maxMuscleGroupVolume) * 100)}%` },
+                    ]}
+                  />
+                </View>
+                <Text style={styles.mgVolume}>{formatVolume(volume)}</Text>
+              </View>
+            ))
+          )}
+        </ShineCard>
+      </FadeIn>
     </ScrollView>
   );
 }
@@ -153,16 +162,10 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 10,
   },
-  title: { color: colors.text, fontSize: 30, fontWeight: "800" },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 36, letterSpacing: 0.5 },
   statsRow: { flexDirection: "row", gap: 10 },
-  statCard: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface2,
-    borderRadius: 12,
-    padding: 14,
-  },
+  statCardOuter: { flex: 1 },
+  statCardInner: { padding: 14 },
   statLabel: {
     color: colors.muted,
     fontSize: 11,
@@ -170,15 +173,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  statValue: { color: colors.text, fontSize: 24, fontWeight: "800", marginTop: 4 },
+  statValue: { color: colors.text, fontFamily: displayFont, fontSize: 30, marginTop: 4 },
   statSub: { color: colors.accent, fontSize: 12, marginTop: 2 },
-  section: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: 16,
-  },
   sectionTitle: { color: colors.text, fontSize: 15, fontWeight: "800", textTransform: "uppercase" },
   sectionSub: { color: colors.muted, fontSize: 11, marginTop: 2, marginBottom: 8 },
   heatmapRow: { flexDirection: "row", gap: 3, marginTop: 10 },

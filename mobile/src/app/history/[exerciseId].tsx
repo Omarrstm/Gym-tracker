@@ -2,9 +2,12 @@ import { useCallback, useState } from "react";
 import { Redirect, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { muscleGroupLabels } from "@/constants/muscleGroups";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
+import ShineCard from "@/components/ShineCard";
+import FadeIn from "@/components/FadeIn";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -18,7 +21,7 @@ const trendStyleMap = {
 
 function SessionLogRow({ log }: { log: api.SessionLog }) {
   return (
-    <View style={styles.logRow}>
+    <ShineCard contentStyle={styles.logRowInner}>
       <View style={styles.logRowTop}>
         <Text style={styles.logDate}>{formatDate(log.date)}</Text>
         <View style={styles.logRowRight}>
@@ -39,7 +42,7 @@ function SessionLogRow({ log }: { log: api.SessionLog }) {
         </View>
       </View>
       {log.notes && <Text style={styles.notes}>{log.notes}</Text>}
-    </View>
+    </ShineCard>
   );
 }
 
@@ -87,47 +90,51 @@ export default function ExerciseHistoryScreen() {
         <Text style={styles.emptyText}>No sets logged for this exercise yet.</Text>
       ) : (
         <>
-          <View style={styles.prCard}>
-            <View>
-              <Text style={styles.prLabel}>Personal Record</Text>
-              <Text style={styles.prValue}>{data.prWeight != null ? `${data.prWeight} kg` : "—"}</Text>
-            </View>
-            {data.prDate && <Text style={styles.prDate}>{formatDate(data.prDate)}</Text>}
-          </View>
+          <FadeIn>
+            <ShineCard contentStyle={styles.prCardInner}>
+              <View>
+                <Text style={styles.prLabel}>Personal Record</Text>
+                <Text style={styles.prValue}>{data.prWeight != null ? `${data.prWeight} kg` : "—"}</Text>
+              </View>
+              {data.prDate && <Text style={styles.prDate}>{formatDate(data.prDate)}</Text>}
+            </ShineCard>
+          </FadeIn>
 
           <Text style={styles.sectionLabel}>All Sessions</Text>
-          {data.sessions.map((session) => {
+          {data.sessions.map((session, index) => {
             const trendStyle = session.trend ? trendStyleMap[session.trend] : null;
             return (
-              <View key={session.key} style={styles.session}>
-                <View style={styles.sessionHeader}>
-                  <Text style={styles.sessionDate}>{formatDate(session.date)}</Text>
-                  <View style={styles.sessionHeaderRight}>
-                    <Text style={styles.sessionVolume}>
-                      Vol {Math.round(session.volume).toLocaleString("en-US")} kg
-                    </Text>
-                    {trendStyle && session.delta != null && (
-                      <View
-                        style={[
-                          styles.trendBadge,
-                          { borderColor: trendStyle.border, backgroundColor: trendStyle.bg },
-                        ]}
-                      >
-                        <Text style={[styles.trendBadgeText, { color: trendStyle.text }]}>
-                          {session.trend === "up"
-                            ? `Progressed +${session.delta.toFixed(0)}%`
-                            : session.trend === "down"
-                              ? `Regressed ${session.delta.toFixed(0)}%`
-                              : "Same"}
-                        </Text>
-                      </View>
-                    )}
+              <FadeIn key={session.key} delay={60 + index * 30}>
+                <View style={styles.session}>
+                  <View style={styles.sessionHeader}>
+                    <Text style={styles.sessionDate}>{formatDate(session.date)}</Text>
+                    <View style={styles.sessionHeaderRight}>
+                      <Text style={styles.sessionVolume}>
+                        Vol {Math.round(session.volume).toLocaleString("en-US")} kg
+                      </Text>
+                      {trendStyle && session.delta != null && (
+                        <View
+                          style={[
+                            styles.trendBadge,
+                            { borderColor: trendStyle.border, backgroundColor: trendStyle.bg },
+                          ]}
+                        >
+                          <Text style={[styles.trendBadgeText, { color: trendStyle.text }]}>
+                            {session.trend === "up"
+                              ? `Progressed +${session.delta.toFixed(0)}%`
+                              : session.trend === "down"
+                                ? `Regressed ${session.delta.toFixed(0)}%`
+                                : "Same"}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                   </View>
+                  {session.logs.map((log) => (
+                    <SessionLogRow key={log.id} log={log} />
+                  ))}
                 </View>
-                {session.logs.map((log) => (
-                  <SessionLogRow key={log.id} log={log} />
-                ))}
-              </View>
+              </FadeIn>
             );
           })}
         </>
@@ -150,16 +157,12 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 10,
   },
-  title: { color: colors.text, fontSize: 28, fontWeight: "800" },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 34, letterSpacing: 0.5 },
   emptyText: { color: colors.muted, fontSize: 13, marginTop: 16 },
-  prCard: {
+  prCardInner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface2,
-    borderRadius: 12,
     padding: 14,
   },
   prLabel: {
@@ -169,7 +172,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  prValue: { color: colors.text, fontSize: 24, fontWeight: "800", marginTop: 2 },
+  prValue: { color: colors.text, fontFamily: displayFont, fontSize: 28, marginTop: 2 },
   prDate: { color: colors.muted, fontSize: 12 },
   sectionLabel: {
     color: colors.muted,
@@ -186,13 +189,7 @@ const styles = StyleSheet.create({
   sessionVolume: { color: colors.muted, fontSize: 11 },
   trendBadge: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
   trendBadgeText: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
-  logRow: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 12,
-  },
+  logRowInner: { padding: 12 },
   logRowTop: {
     flexDirection: "row",
     alignItems: "center",

@@ -2,9 +2,12 @@ import { useCallback, useState } from "react";
 import { Redirect, useFocusEffect, useRouter } from "expo-router";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import SubTabs from "@/components/SubTabs";
+import ShineCard from "@/components/ShineCard";
+import FadeIn from "@/components/FadeIn";
 
 const coachingTabs = [
   { href: "/coaches" as const, label: "Find a Coach" },
@@ -60,53 +63,57 @@ export default function MyCoachesScreen() {
       ) : (
         <>
           {data.pending.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Pending Requests</Text>
-              {data.pending.map((p) => (
-                <Text key={p.coachId} style={styles.pendingText}>
-                  {p.name ?? p.email} — awaiting response
-                </Text>
-              ))}
-            </View>
+            <FadeIn>
+              <ShineCard contentStyle={styles.section}>
+                <Text style={styles.sectionTitle}>Pending Requests</Text>
+                {data.pending.map((p) => (
+                  <Text key={p.coachId} style={styles.pendingText}>
+                    {p.name ?? p.email} — awaiting response
+                  </Text>
+                ))}
+              </ShineCard>
+            </FadeIn>
           )}
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Coaches</Text>
-            {data.accepted.length === 0 ? (
-              <Text style={styles.emptyText}>
-                No coaches yet.{" "}
-                <Text style={styles.link} onPress={() => router.push("/coaches")}>
-                  Find one
-                </Text>{" "}
-                or enter a join code.
-              </Text>
-            ) : (
-              data.accepted.map((c) => (
-                <View key={c.coachId} style={styles.coachCard}>
-                  <View style={styles.coachCardTop}>
-                    <Text style={styles.coachName}>{c.name ?? c.email}</Text>
-                    <TouchableOpacity onPress={() => handleRevoke(c.coachId)} disabled={busyId === c.coachId}>
-                      <Text style={styles.unlink}>Unlink</Text>
-                    </TouchableOpacity>
-                  </View>
-                  {c.programs.length > 0 && (
-                    <View style={styles.programsList}>
-                      {c.programs.map((p) => (
-                        <TouchableOpacity
-                          key={p.id}
-                          style={styles.programRow}
-                          onPress={() => router.push(`/programs/${p.id}`)}
-                        >
-                          <Text style={styles.programName}>{p.name}</Text>
-                          {p.isActive && <Text style={styles.activeLabel}>Active</Text>}
-                        </TouchableOpacity>
-                      ))}
+          <FadeIn delay={60}>
+            <ShineCard contentStyle={styles.section}>
+              <Text style={styles.sectionTitle}>Your Coaches</Text>
+              {data.accepted.length === 0 ? (
+                <Text style={styles.emptyText}>
+                  No coaches yet.{" "}
+                  <Text style={styles.link} onPress={() => router.push("/coaches")}>
+                    Find one
+                  </Text>{" "}
+                  or enter a join code.
+                </Text>
+              ) : (
+                data.accepted.map((c) => (
+                  <View key={c.coachId} style={styles.coachCard}>
+                    <View style={styles.coachCardTop}>
+                      <Text style={styles.coachName}>{c.name ?? c.email}</Text>
+                      <TouchableOpacity onPress={() => handleRevoke(c.coachId)} disabled={busyId === c.coachId}>
+                        <Text style={styles.unlink}>Unlink</Text>
+                      </TouchableOpacity>
                     </View>
-                  )}
-                </View>
-              ))
-            )}
-          </View>
+                    {c.programs.length > 0 && (
+                      <View style={styles.programsList}>
+                        {c.programs.map((p) => (
+                          <TouchableOpacity
+                            key={p.id}
+                            style={styles.programRow}
+                            onPress={() => router.push(`/programs/${p.id}`)}
+                          >
+                            <Text style={styles.programName}>{p.name}</Text>
+                            {p.isActive && <Text style={styles.activeLabel}>Active</Text>}
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                ))
+              )}
+            </ShineCard>
+          </FadeIn>
         </>
       )}
     </ScrollView>
@@ -126,15 +133,8 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 10,
   },
-  title: { color: colors.text, fontSize: 30, fontWeight: "800" },
-  section: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: 16,
-    gap: 8,
-  },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 36, letterSpacing: 0.5 },
+  section: { padding: 16, gap: 8 },
   sectionTitle: { color: colors.text, fontSize: 15, fontWeight: "800", textTransform: "uppercase" },
   pendingText: { color: colors.muted, fontSize: 13.5 },
   emptyText: { color: colors.muted, fontSize: 13 },

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { useAuth } from "@/lib/auth-context";
+import FadeIn from "@/components/FadeIn";
 
 export default function LockScreen() {
   const { unlock } = useAuth();
@@ -26,14 +28,16 @@ export default function LockScreen() {
 
   return (
     <View style={styles.flex}>
-      <Text style={styles.icon}>{"\u{1F512}"}</Text>
-      <Text style={styles.title}>Gym Tracker Locked</Text>
-      <Text style={styles.subtitle}>
-        {failed ? "Couldn't verify — try again." : "Verify your identity to continue."}
-      </Text>
-      <TouchableOpacity style={styles.button} onPress={attempt} disabled={pending}>
-        <Text style={styles.buttonText}>{pending ? "Verifying..." : "Unlock"}</Text>
-      </TouchableOpacity>
+      <FadeIn style={styles.fadeWrap}>
+        <Text style={styles.icon}>{"\u{1F512}"}</Text>
+        <Text style={styles.title}>Gym Tracker Locked</Text>
+        <Text style={styles.subtitle}>
+          {failed ? "Couldn't verify — try again." : "Verify your identity to continue."}
+        </Text>
+        <TouchableOpacity style={styles.button} onPress={attempt} disabled={pending}>
+          <Text style={styles.buttonText}>{pending ? "Verifying..." : "Unlock"}</Text>
+        </TouchableOpacity>
+      </FadeIn>
     </View>
   );
 }
@@ -45,10 +49,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
-    gap: 8,
   },
+  fadeWrap: { alignItems: "center", gap: 8 },
   icon: { fontSize: 40, marginBottom: 8 },
-  title: { color: colors.text, fontSize: 20, fontWeight: "800" },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 26, letterSpacing: 0.5 },
   subtitle: { color: colors.muted, fontSize: 13, textAlign: "center", marginBottom: 16 },
   button: {
     backgroundColor: colors.accent,

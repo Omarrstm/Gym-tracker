@@ -2,9 +2,12 @@ import { useCallback, useMemo, useState } from "react";
 import { Redirect, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { muscleGroupLabels } from "@/constants/muscleGroups";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
+import ShineCard, { shineCardStyles } from "@/components/ShineCard";
+import FadeIn from "@/components/FadeIn";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -76,87 +79,93 @@ export default function ExerciseProgressScreen() {
         <Text style={styles.emptyText}>No sets logged for this exercise yet.</Text>
       ) : (
         <>
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <Text style={styles.statLabel}>Peak</Text>
-              <Text style={styles.statValue}>{peak} kg</Text>
+          <FadeIn>
+            <View style={styles.statsRow}>
+              <ShineCard style={styles.statCardOuter} contentStyle={styles.statCardInner}>
+                <Text style={styles.statLabel}>Peak</Text>
+                <Text style={styles.statValue}>{peak} kg</Text>
+              </ShineCard>
+              <ShineCard style={styles.statCardOuter} contentStyle={styles.statCardInner}>
+                <Text style={styles.statLabel}>Latest</Text>
+                <Text style={styles.statValue}>{latest} kg</Text>
+              </ShineCard>
+              <ShineCard style={styles.statCardOuter} contentStyle={styles.statCardInner}>
+                <Text style={styles.statLabel}>Vs Last</Text>
+                <Text
+                  style={[
+                    styles.statValue,
+                    change === null ? null : change >= 0 ? styles.statPositive : styles.statNegative,
+                  ]}
+                >
+                  {change === null ? "—" : `${change >= 0 ? "+" : ""}${change} kg`}
+                </Text>
+              </ShineCard>
             </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statLabel}>Latest</Text>
-              <Text style={styles.statValue}>{latest} kg</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statLabel}>Vs Last</Text>
-              <Text
-                style={[
-                  styles.statValue,
-                  change === null ? null : change >= 0 ? styles.statPositive : styles.statNegative,
-                ]}
-              >
-                {change === null ? "—" : `${change >= 0 ? "+" : ""}${change} kg`}
-              </Text>
-            </View>
-          </View>
+          </FadeIn>
 
-          <View style={styles.chartCard}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={styles.chart}>
-                {points.map((p, i) => (
-                  <View key={i} style={styles.barColumn}>
-                    <Text style={styles.barValue}>{p.weight}</Text>
-                    <View
-                      style={[
-                        styles.bar,
-                        { height: Math.max(4, (p.weight / maxWeight) * BAR_HEIGHT) },
-                      ]}
-                    />
-                    <Text style={styles.barDate}>{formatDate(p.date)}</Text>
-                  </View>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
+          <FadeIn delay={60}>
+            <ShineCard contentStyle={shineCardStyles.padded}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.chart}>
+                  {points.map((p, i) => (
+                    <View key={i} style={styles.barColumn}>
+                      <Text style={styles.barValue}>{p.weight}</Text>
+                      <View
+                        style={[
+                          styles.bar,
+                          { height: Math.max(4, (p.weight / maxWeight) * BAR_HEIGHT) },
+                        ]}
+                      />
+                      <Text style={styles.barDate}>{formatDate(p.date)}</Text>
+                    </View>
+                  ))}
+                </View>
+              </ScrollView>
+            </ShineCard>
+          </FadeIn>
 
           <Text style={styles.sectionLabel}>Every Workout</Text>
           {[...points].reverse().map((p, i) => {
             const prevPoint = points[points.length - 1 - i - 1];
             const delta = prevPoint ? p.weight - prevPoint.weight : null;
             return (
-              <View key={p.date} style={styles.workoutRow}>
-                <Text style={styles.workoutDate}>
-                  {new Date(p.date).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </Text>
-                <View style={styles.workoutRight}>
-                  <Text style={styles.workoutWeight}>
-                    {p.weight} kg × {p.reps}
+              <FadeIn key={p.date} delay={100 + i * 30}>
+                <View style={styles.workoutRow}>
+                  <Text style={styles.workoutDate}>
+                    {new Date(p.date).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
                   </Text>
-                  {delta !== null && (
-                    <View
-                      style={[
-                        styles.deltaBadge,
-                        delta > 0 ? styles.deltaUp : delta < 0 ? styles.deltaDown : styles.deltaSame,
-                      ]}
-                    >
-                      <Text
+                  <View style={styles.workoutRight}>
+                    <Text style={styles.workoutWeight}>
+                      {p.weight} kg × {p.reps}
+                    </Text>
+                    {delta !== null && (
+                      <View
                         style={[
-                          styles.deltaBadgeText,
-                          delta > 0
-                            ? styles.deltaUpText
-                            : delta < 0
-                              ? styles.deltaDownText
-                              : styles.deltaSameText,
+                          styles.deltaBadge,
+                          delta > 0 ? styles.deltaUp : delta < 0 ? styles.deltaDown : styles.deltaSame,
                         ]}
                       >
-                        {delta > 0 ? `+${delta} kg` : delta < 0 ? `${delta} kg` : "Same"}
-                      </Text>
-                    </View>
-                  )}
+                        <Text
+                          style={[
+                            styles.deltaBadgeText,
+                            delta > 0
+                              ? styles.deltaUpText
+                              : delta < 0
+                                ? styles.deltaDownText
+                                : styles.deltaSameText,
+                          ]}
+                        >
+                          {delta > 0 ? `+${delta} kg` : delta < 0 ? `${delta} kg` : "Same"}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
-              </View>
+              </FadeIn>
             );
           })}
         </>
@@ -179,17 +188,11 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 10,
   },
-  title: { color: colors.text, fontSize: 28, fontWeight: "800" },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 34, letterSpacing: 0.5 },
   emptyText: { color: colors.muted, fontSize: 13, marginTop: 16 },
   statsRow: { flexDirection: "row", gap: 8 },
-  statCard: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface2,
-    borderRadius: 12,
-    padding: 12,
-  },
+  statCardOuter: { flex: 1 },
+  statCardInner: { padding: 12 },
   statLabel: {
     color: colors.muted,
     fontSize: 10,
@@ -197,16 +200,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  statValue: { color: colors.text, fontSize: 18, fontWeight: "800", marginTop: 4 },
+  statValue: { color: colors.text, fontFamily: displayFont, fontSize: 22, marginTop: 4 },
   statPositive: { color: colors.accent },
   statNegative: { color: colors.danger },
-  chartCard: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: 16,
-  },
   chart: { flexDirection: "row", alignItems: "flex-end", gap: 12, height: BAR_HEIGHT + 40 },
   barColumn: { alignItems: "center", justifyContent: "flex-end", width: BAR_WIDTH },
   barValue: { color: colors.muted, fontSize: 10, marginBottom: 4 },

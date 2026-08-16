@@ -11,9 +11,12 @@ import {
   View,
 } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
+import ShineCard from "@/components/ShineCard";
+import FadeIn from "@/components/FadeIn";
 
 export default function ProgramsScreen() {
   const { token } = useAuth();
@@ -105,36 +108,38 @@ export default function ProgramsScreen() {
             </Text>
           )}
 
-          {programs.map((p) => (
-            <TouchableOpacity
-              key={p.id}
-              style={styles.card}
-              onPress={() => router.push(`/programs/${p.id}`)}
-              disabled={busyId === p.id}
-            >
-              <View style={styles.cardHeaderRow}>
-                <Text style={styles.programName}>{p.name}</Text>
-                {p.isActive && (
-                  <View style={styles.activeBadge}>
-                    <Text style={styles.activeBadgeText}>Active</Text>
+          {programs.map((p, index) => (
+            <FadeIn key={p.id} delay={index * 40}>
+              <TouchableOpacity
+                onPress={() => router.push(`/programs/${p.id}`)}
+                disabled={busyId === p.id}
+              >
+                <ShineCard contentStyle={styles.cardInner}>
+                  <View style={styles.cardHeaderRow}>
+                    <Text style={styles.programName}>{p.name}</Text>
+                    {p.isActive && (
+                      <View style={styles.activeBadge}>
+                        <Text style={styles.activeBadgeText}>Active</Text>
+                      </View>
+                    )}
                   </View>
-                )}
-              </View>
-              <Text style={styles.programMeta}>
-                {p.dayCount} {p.dayCount === 1 ? "day" : "days"} &middot; {p.exerciseCount}{" "}
-                {p.exerciseCount === 1 ? "exercise" : "exercises"}
-              </Text>
-              <View style={styles.cardActions}>
-                {!p.isActive && (
-                  <TouchableOpacity onPress={() => handleActivate(p.id)} disabled={busyId === p.id}>
-                    <Text style={styles.actionLink}>Set Active</Text>
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity onPress={() => handleDelete(p.id)} disabled={busyId === p.id}>
-                  <Text style={styles.actionLinkDanger}>Delete</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
+                  <Text style={styles.programMeta}>
+                    {p.dayCount} {p.dayCount === 1 ? "day" : "days"} &middot; {p.exerciseCount}{" "}
+                    {p.exerciseCount === 1 ? "exercise" : "exercises"}
+                  </Text>
+                  <View style={styles.cardActions}>
+                    {!p.isActive && (
+                      <TouchableOpacity onPress={() => handleActivate(p.id)} disabled={busyId === p.id}>
+                        <Text style={styles.actionLink}>Set Active</Text>
+                      </TouchableOpacity>
+                    )}
+                    <TouchableOpacity onPress={() => handleDelete(p.id)} disabled={busyId === p.id}>
+                      <Text style={styles.actionLinkDanger}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
+                </ShineCard>
+              </TouchableOpacity>
+            </FadeIn>
           ))}
         </>
       )}
@@ -187,15 +192,9 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 10,
   },
-  title: { color: colors.text, fontSize: 30, fontWeight: "800" },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 36, letterSpacing: 0.5 },
   emptyText: { color: colors.muted, fontSize: 13, lineHeight: 18 },
-  card: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 14,
-  },
+  cardInner: { padding: 14 },
   cardHeaderRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   programName: { color: colors.text, fontSize: 16, fontWeight: "700" },
   activeBadge: {

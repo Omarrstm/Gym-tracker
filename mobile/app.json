@@ -40,7 +40,8 @@
         {
           "faceIDPermission": "Allow Gym Tracker to use Face ID to unlock the app."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,

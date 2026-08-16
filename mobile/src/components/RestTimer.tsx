@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import {
   cancelNotification,
   ensureNotificationPermissions,
   scheduleRestCompleteNotification,
 } from "@/lib/notifications";
+import ShineCard from "@/components/ShineCard";
 
 function formatTime(s: number) {
   const m = Math.floor(s / 60);
@@ -72,7 +74,7 @@ export default function RestTimer({
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.card}>
+      <ShineCard style={styles.shadow} contentStyle={styles.card} radius={16}>
         <View style={styles.left}>
           <Text style={styles.time}>{formatTime(remaining)}</Text>
           <View style={styles.track}>
@@ -95,7 +97,7 @@ export default function RestTimer({
         <TouchableOpacity onPress={handleDismiss}>
           <Text style={styles.skip}>Skip</Text>
         </TouchableOpacity>
-      </View>
+      </ShineCard>
     </View>
   );
 }
@@ -107,24 +109,22 @@ const styles = StyleSheet.create({
     right: 16,
     bottom: 20,
   },
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+  shadow: {
     shadowColor: "#000",
     shadowOpacity: 0.3,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
   },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
   left: { width: 64 },
-  time: { color: colors.text, fontSize: 16, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  time: { color: colors.text, fontFamily: displayFont, fontSize: 20, fontVariant: ["tabular-nums"] },
   track: {
     marginTop: 6,
     height: 4,

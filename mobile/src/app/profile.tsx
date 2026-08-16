@@ -11,10 +11,13 @@ import {
   View,
 } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
 import { isBiometricAvailable, authenticateWithBiometrics } from "@/lib/biometrics";
+import ShineCard from "@/components/ShineCard";
+import FadeIn from "@/components/FadeIn";
 
 function Field({
   label,
@@ -44,12 +47,22 @@ function Field({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+  delay = 0,
+}: {
+  title: string;
+  children: React.ReactNode;
+  delay?: number;
+}) {
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {children}
-    </View>
+    <FadeIn delay={delay}>
+      <ShineCard contentStyle={styles.section}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        {children}
+      </ShineCard>
+    </FadeIn>
   );
 }
 
@@ -216,7 +229,7 @@ export default function ProfileScreen() {
         <Text style={styles.title}>Profile</Text>
       </View>
 
-      <Section title="Account">
+      <Section title="Account" delay={0}>
         <Field label="Name" value={name} onChangeText={setName} />
         {nameError && <Text style={styles.error}>{nameError}</Text>}
         {nameStatus && <Text style={styles.success}>{nameStatus}</Text>}
@@ -233,7 +246,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </Section>
 
-      <Section title="Security">
+      <Section title="Security" delay={40}>
         {biometricAvailable ? (
           <>
             <View style={styles.switchRow}>
@@ -261,19 +274,19 @@ export default function ProfileScreen() {
         )}
       </Section>
 
-      <Section title="Body Stats">
+      <Section title="Body Stats" delay={80}>
         {data.bmi != null && (
           <View style={styles.statsRow}>
-            <View style={styles.statCard}>
+            <ShineCard style={styles.statCardOuter} contentStyle={styles.statCardInner}>
               <Text style={styles.statLabel}>BMI</Text>
               <Text style={styles.statValue}>{data.bmi.toFixed(1)}</Text>
               <Text style={styles.statSub}>{data.bmiCategory}</Text>
-            </View>
-            <View style={styles.statCard}>
+            </ShineCard>
+            <ShineCard style={styles.statCardOuter} contentStyle={styles.statCardInner}>
               <Text style={styles.statLabel}>BMR</Text>
               <Text style={styles.statValue}>{Math.round(data.bmr!)}</Text>
               <Text style={styles.statSub}>kcal / day at rest</Text>
-            </View>
+            </ShineCard>
           </View>
         )}
 
@@ -321,7 +334,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </Section>
 
-      <Section title="Rest Timer">
+      <Section title="Rest Timer" delay={120}>
         <Field
           label="Default Rest (seconds)"
           value={restTimer}
@@ -343,7 +356,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </Section>
 
-      <Section title="Weight History">
+      <Section title="Weight History" delay={160}>
         {data.bodyWeightLogs.length === 0 ? (
           <Text style={styles.emptyText}>No weight logged yet.</Text>
         ) : (
@@ -407,15 +420,8 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 10,
   },
-  title: { color: colors.text, fontSize: 30, fontWeight: "800" },
-  section: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: 16,
-    gap: 10,
-  },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 36, letterSpacing: 0.5 },
+  section: { padding: 16, gap: 10 },
   sectionTitle: { color: colors.text, fontSize: 15, fontWeight: "800", textTransform: "uppercase" },
   field: { gap: 4 },
   label: {
@@ -449,14 +455,8 @@ const styles = StyleSheet.create({
   switchLabel: { color: colors.text, fontSize: 14, fontWeight: "700" },
   switchHint: { color: colors.muted, fontSize: 12, marginTop: 2, lineHeight: 16 },
   statsRow: { flexDirection: "row", gap: 10, marginBottom: 4 },
-  statCard: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface2,
-    borderRadius: 12,
-    padding: 12,
-  },
+  statCardOuter: { flex: 1 },
+  statCardInner: { padding: 12 },
   statLabel: {
     color: colors.muted,
     fontSize: 10,
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  statValue: { color: colors.text, fontSize: 22, fontWeight: "800", marginTop: 2 },
+  statValue: { color: colors.text, fontFamily: displayFont, fontSize: 26, marginTop: 2 },
   statSub: { color: colors.accent, fontSize: 11, marginTop: 2 },
   sexRow: { flexDirection: "row", gap: 8 },
   sexButton: {

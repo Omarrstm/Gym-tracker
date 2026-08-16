@@ -11,10 +11,13 @@ import {
   View,
 } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { dayLabels, dayOrder } from "@/constants/days";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
+import ShineCard, { shineCardStyles } from "@/components/ShineCard";
+import FadeIn from "@/components/FadeIn";
 
 function ExercisePickerModal({
   visible,
@@ -243,35 +246,37 @@ export default function ProgramDetailScreen() {
         </View>
       </View>
 
-      {dayOrder.map((day) => {
+      {dayOrder.map((day, dayIndex) => {
         const dayData = detail.days.find((d) => d.dayOfWeek === day);
         const exercises = dayData?.exercises ?? [];
         return (
-          <View key={day} style={styles.dayCard}>
-            <Text style={styles.dayLabel}>{dayLabels[day]}</Text>
-            {exercises.length === 0 ? (
-              <Text style={styles.noExercises}>Rest day</Text>
-            ) : (
-              exercises.map((ex) => (
-                <View key={ex.id} style={styles.exerciseRow}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.exerciseName}>{ex.exercise.name}</Text>
-                    <Text style={styles.exerciseTarget}>
-                      {ex.targetWeight != null && ex.targetSets != null && ex.targetReps != null
-                        ? `${ex.targetWeight} kg × ${ex.targetSets} × ${ex.targetReps}`
-                        : "No target set"}
-                    </Text>
+          <FadeIn key={day} delay={dayIndex * 30}>
+            <ShineCard contentStyle={shineCardStyles.padded}>
+              <Text style={styles.dayLabel}>{dayLabels[day]}</Text>
+              {exercises.length === 0 ? (
+                <Text style={styles.noExercises}>Rest day</Text>
+              ) : (
+                exercises.map((ex) => (
+                  <View key={ex.id} style={styles.exerciseRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.exerciseName}>{ex.exercise.name}</Text>
+                      <Text style={styles.exerciseTarget}>
+                        {ex.targetWeight != null && ex.targetSets != null && ex.targetReps != null
+                          ? `${ex.targetWeight} kg × ${ex.targetSets} × ${ex.targetReps}`
+                          : "No target set"}
+                      </Text>
+                    </View>
+                    <TouchableOpacity onPress={() => handleRemove(ex.id)} disabled={busyId === ex.id}>
+                      <Text style={styles.removeLink}>Remove</Text>
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity onPress={() => handleRemove(ex.id)} disabled={busyId === ex.id}>
-                    <Text style={styles.removeLink}>Remove</Text>
-                  </TouchableOpacity>
-                </View>
-              ))
-            )}
-            <TouchableOpacity style={styles.addExerciseButton} onPress={() => setPickerDay(day)}>
-              <Text style={styles.addExerciseText}>+ Add Exercise</Text>
-            </TouchableOpacity>
-          </View>
+                ))
+              )}
+              <TouchableOpacity style={styles.addExerciseButton} onPress={() => setPickerDay(day)}>
+                <Text style={styles.addExerciseText}>+ Add Exercise</Text>
+              </TouchableOpacity>
+            </ShineCard>
+          </FadeIn>
         );
       })}
 
@@ -293,7 +298,7 @@ const styles = StyleSheet.create({
   header: { marginBottom: 8 },
   back: { color: colors.muted, fontSize: 12, fontWeight: "600" },
   titleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },
-  title: { color: colors.text, fontSize: 26, fontWeight: "800" },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 32, letterSpacing: 0.5 },
   activeBadge: {
     borderWidth: 1,
     borderColor: colors.accent,
@@ -303,13 +308,6 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   activeBadgeText: { color: colors.accent, fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
-  dayCard: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 14,
-  },
   dayLabel: {
     color: colors.muted,
     fontSize: 11,

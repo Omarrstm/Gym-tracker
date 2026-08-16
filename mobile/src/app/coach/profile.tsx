@@ -11,10 +11,13 @@ import {
   View,
 } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
 import SubTabs from "@/components/SubTabs";
+import ShineCard from "@/components/ShineCard";
+import FadeIn from "@/components/FadeIn";
 
 const coachingTabs = [
   { href: "/coaches" as const, label: "Find a Coach" },
@@ -100,68 +103,72 @@ export default function CoachProfileScreen() {
       <SubTabs tabs={coachingTabs} active="/coach/profile" />
 
       {profile && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Join Code</Text>
-          <Text style={styles.joinCode}>{profile.joinCode}</Text>
-          <Text style={styles.hint}>
-            Share this code with an athlete — they can enter it on the Coaches page to link with
-            you instantly.
-          </Text>
-          <TouchableOpacity onPress={handleRegenerate} disabled={regenPending}>
-            <Text style={styles.regenLink}>
-              {regenPending ? "Generating..." : "Generate a new code"}
+        <FadeIn>
+          <ShineCard contentStyle={styles.section}>
+            <Text style={styles.sectionTitle}>Join Code</Text>
+            <Text style={styles.joinCode}>{profile.joinCode}</Text>
+            <Text style={styles.hint}>
+              Share this code with an athlete — they can enter it on the Coaches page to link with
+              you instantly.
             </Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity onPress={handleRegenerate} disabled={regenPending}>
+              <Text style={styles.regenLink}>
+                {regenPending ? "Generating..." : "Generate a new code"}
+              </Text>
+            </TouchableOpacity>
+          </ShineCard>
+        </FadeIn>
       )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{profile ? "Edit Profile" : "Become a Coach"}</Text>
-        <View style={styles.field}>
-          <Text style={styles.label}>Bio</Text>
-          <TextInput
-            value={bio}
-            onChangeText={setBio}
-            multiline
-            numberOfLines={4}
-            placeholder="Tell athletes about your coaching style and experience."
-            placeholderTextColor={colors.muted}
-            style={[styles.input, styles.textArea]}
-          />
-        </View>
-        <View style={styles.field}>
-          <Text style={styles.label}>Specialties (comma-separated)</Text>
-          <TextInput
-            value={specialties}
-            onChangeText={setSpecialties}
-            placeholder="Powerlifting, Nutrition, Injury Recovery"
-            placeholderTextColor={colors.muted}
-            style={styles.input}
-          />
-        </View>
-        <View style={styles.switchRow}>
-          <Text style={styles.switchLabel}>Show my profile in the coach directory</Text>
-          <Switch
-            value={isPublic}
-            onValueChange={setIsPublic}
-            trackColor={{ false: colors.border, true: colors.accentBlue }}
-            thumbColor={colors.text}
-          />
-        </View>
-        {error && <Text style={styles.error}>{error}</Text>}
-        {status && <Text style={styles.success}>{status}</Text>}
-        <TouchableOpacity
-          style={[styles.saveButton, pending && styles.disabled]}
-          onPress={handleSave}
-          disabled={pending}
-        >
-          {pending ? (
-            <ActivityIndicator color={colors.bg} />
-          ) : (
-            <Text style={styles.saveButtonText}>Save Coach Profile</Text>
-          )}
-        </TouchableOpacity>
-      </View>
+      <FadeIn delay={60}>
+        <ShineCard contentStyle={styles.section}>
+          <Text style={styles.sectionTitle}>{profile ? "Edit Profile" : "Become a Coach"}</Text>
+          <View style={styles.field}>
+            <Text style={styles.label}>Bio</Text>
+            <TextInput
+              value={bio}
+              onChangeText={setBio}
+              multiline
+              numberOfLines={4}
+              placeholder="Tell athletes about your coaching style and experience."
+              placeholderTextColor={colors.muted}
+              style={[styles.input, styles.textArea]}
+            />
+          </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Specialties (comma-separated)</Text>
+            <TextInput
+              value={specialties}
+              onChangeText={setSpecialties}
+              placeholder="Powerlifting, Nutrition, Injury Recovery"
+              placeholderTextColor={colors.muted}
+              style={styles.input}
+            />
+          </View>
+          <View style={styles.switchRow}>
+            <Text style={styles.switchLabel}>Show my profile in the coach directory</Text>
+            <Switch
+              value={isPublic}
+              onValueChange={setIsPublic}
+              trackColor={{ false: colors.border, true: colors.accentBlue }}
+              thumbColor={colors.text}
+            />
+          </View>
+          {error && <Text style={styles.error}>{error}</Text>}
+          {status && <Text style={styles.success}>{status}</Text>}
+          <TouchableOpacity
+            style={[styles.saveButton, pending && styles.disabled]}
+            onPress={handleSave}
+            disabled={pending}
+          >
+            {pending ? (
+              <ActivityIndicator color={colors.bg} />
+            ) : (
+              <Text style={styles.saveButtonText}>Save Coach Profile</Text>
+            )}
+          </TouchableOpacity>
+        </ShineCard>
+      </FadeIn>
 
       {profile && (
         <TouchableOpacity style={styles.dashboardLink} onPress={() => router.push("/")}>
@@ -186,17 +193,10 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 10,
   },
-  title: { color: colors.text, fontSize: 30, fontWeight: "800" },
-  section: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: 16,
-    gap: 8,
-  },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 36, letterSpacing: 0.5 },
+  section: { padding: 16, gap: 8 },
   sectionTitle: { color: colors.text, fontSize: 15, fontWeight: "800", textTransform: "uppercase" },
-  joinCode: { color: colors.text, fontSize: 22, fontWeight: "800", letterSpacing: 2 },
+  joinCode: { color: colors.text, fontFamily: displayFont, fontSize: 26, letterSpacing: 2 },
   hint: { color: colors.muted, fontSize: 12, lineHeight: 16 },
   regenLink: { color: colors.accentBlue, fontSize: 12, fontWeight: "700" },
   field: { gap: 4 },

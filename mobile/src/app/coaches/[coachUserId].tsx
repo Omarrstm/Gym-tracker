@@ -2,9 +2,12 @@ import { useCallback, useState } from "react";
 import { Redirect, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
+import ShineCard from "@/components/ShineCard";
+import FadeIn from "@/components/FadeIn";
 
 function yearRange(startYear: number | null, endYear: number | null) {
   if (!startYear && !endYear) return null;
@@ -67,38 +70,42 @@ export default function CoachDetailScreen() {
         <Text style={styles.title}>{data.coach.name}</Text>
       </View>
 
-      <View style={styles.section}>
-        {data.coach.bio && <Text style={styles.bio}>{data.coach.bio}</Text>}
-        {data.coach.specialties.length > 0 && (
-          <View style={styles.tagRow}>
-            {data.coach.specialties.map((s) => (
-              <View key={s} style={styles.tag}>
-                <Text style={styles.tagText}>{s}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
+      <FadeIn>
+        <ShineCard contentStyle={styles.section}>
+          {data.coach.bio && <Text style={styles.bio}>{data.coach.bio}</Text>}
+          {data.coach.specialties.length > 0 && (
+            <View style={styles.tagRow}>
+              {data.coach.specialties.map((s) => (
+                <View key={s} style={styles.tag}>
+                  <Text style={styles.tagText}>{s}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </ShineCard>
+      </FadeIn>
 
       {data.coach.experiences.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Experience</Text>
-          {data.coach.experiences.map((exp) => {
-            const range = yearRange(exp.startYear, exp.endYear);
-            return (
-              <View key={exp.id} style={styles.expEntry}>
-                <Text style={styles.expTitle}>{exp.title}</Text>
-                {exp.organization && <Text style={styles.expOrg}>{exp.organization}</Text>}
-                {range && <Text style={styles.expRange}>{range}</Text>}
-                {exp.description && <Text style={styles.expDesc}>{exp.description}</Text>}
-              </View>
-            );
-          })}
-        </View>
+        <FadeIn delay={60}>
+          <ShineCard contentStyle={styles.section}>
+            <Text style={styles.sectionTitle}>Experience</Text>
+            {data.coach.experiences.map((exp) => {
+              const range = yearRange(exp.startYear, exp.endYear);
+              return (
+                <View key={exp.id} style={styles.expEntry}>
+                  <Text style={styles.expTitle}>{exp.title}</Text>
+                  {exp.organization && <Text style={styles.expOrg}>{exp.organization}</Text>}
+                  {range && <Text style={styles.expRange}>{range}</Text>}
+                  {exp.description && <Text style={styles.expDesc}>{exp.description}</Text>}
+                </View>
+              );
+            })}
+          </ShineCard>
+        </FadeIn>
       )}
 
       {!data.isSelf && (
-        <>
+        <FadeIn delay={100}>
           {error && <Text style={styles.error}>{error}</Text>}
           {data.linkStatus === "NONE" || data.linkStatus === "DECLINED" || data.linkStatus === "REVOKED" ? (
             <TouchableOpacity
@@ -121,7 +128,7 @@ export default function CoachDetailScreen() {
               <Text style={styles.statusBannerText}>You&rsquo;re linked with this coach</Text>
             </View>
           )}
-        </>
+        </FadeIn>
       )}
     </ScrollView>
   );
@@ -141,15 +148,8 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 10,
   },
-  title: { color: colors.text, fontSize: 28, fontWeight: "800" },
-  section: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: 16,
-    gap: 8,
-  },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 34, letterSpacing: 0.5 },
+  section: { padding: 16, gap: 8 },
   sectionTitle: { color: colors.text, fontSize: 15, fontWeight: "800", textTransform: "uppercase" },
   bio: { color: colors.text, fontSize: 14, lineHeight: 20 },
   tagRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },

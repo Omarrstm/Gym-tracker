@@ -11,10 +11,14 @@ import {
   View,
 } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
 import RestTimer from "@/components/RestTimer";
+import ShineCard, { shineCardStyles } from "@/components/ShineCard";
+import Glow from "@/components/Glow";
+import FadeIn from "@/components/FadeIn";
 import { useOfflineQueue } from "@/lib/offlineQueue";
 
 function formatVolume(kg: number): string {
@@ -89,7 +93,7 @@ function LogSetRow({
   }
 
   return (
-    <View style={styles.card}>
+    <ShineCard contentStyle={shineCardStyles.padded}>
       <TouchableOpacity style={styles.cardHeader} onPress={() => setOpen((v) => !v)}>
         <View style={styles.cardHeaderText}>
           <Text style={styles.exerciseName}>{item.exercise.name}</Text>
@@ -172,7 +176,7 @@ function LogSetRow({
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </ShineCard>
   );
 }
 
@@ -233,36 +237,39 @@ export default function HomeScreen() {
       contentContainerStyle={styles.scroll}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
     >
-      <View style={styles.header}>
-        <View>
-          <View style={styles.badge}>
-            <View style={styles.badgeDot} />
-            <Text style={styles.badgeText}>{data.todayLabel}</Text>
+      <View style={styles.headerWrap}>
+        <Glow color={colors.accent} />
+        <View style={styles.header}>
+          <View>
+            <View style={styles.badge}>
+              <View style={styles.badgeDot} />
+              <Text style={styles.badgeText}>{data.todayLabel}</Text>
+            </View>
+            <Text style={styles.title}>
+              Welcome back,{"\n"}
+              <Text style={styles.titleAccent}>{(user?.name ?? "there").split(" ")[0]}</Text>
+            </Text>
           </View>
-          <Text style={styles.title}>
-            Welcome back,{"\n"}
-            <Text style={styles.titleAccent}>{(user?.name ?? "there").split(" ")[0]}</Text>
-          </Text>
-        </View>
-        <View style={styles.headerLinks}>
-          <TouchableOpacity onPress={() => router.push("/exercises")}>
-            <Text style={styles.headerLink}>Exercise Library</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/programs")}>
-            <Text style={styles.headerLink}>Programs</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/stats")}>
-            <Text style={styles.headerLink}>Progress</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/coaches")}>
-            <Text style={styles.headerLink}>Coaching</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/profile")}>
-            <Text style={styles.headerLink}>Profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={signOut}>
-            <Text style={styles.headerLink}>Log Out</Text>
-          </TouchableOpacity>
+          <View style={styles.headerLinks}>
+            <TouchableOpacity onPress={() => router.push("/exercises")}>
+              <Text style={styles.headerLink}>Exercise Library</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/programs")}>
+              <Text style={styles.headerLink}>Programs</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/stats")}>
+              <Text style={styles.headerLink}>Progress</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/coaches")}>
+              <Text style={styles.headerLink}>Coaching</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/profile")}>
+              <Text style={styles.headerLink}>Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={signOut}>
+              <Text style={styles.headerLink}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -284,30 +291,33 @@ export default function HomeScreen() {
         </View>
       )}
 
-      <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Streak</Text>
-          <Text style={styles.statValue}>{data.streak}</Text>
-          <Text style={styles.statSub}>{data.streak === 1 ? "day" : "days"}</Text>
+      <FadeIn>
+        <View style={styles.statsRow}>
+          <ShineCard style={styles.statCardOuter} contentStyle={styles.statCardInner}>
+            <Text style={styles.statLabel}>Streak</Text>
+            <Text style={styles.statValue}>{data.streak}</Text>
+            <Text style={styles.statSub}>{data.streak === 1 ? "day" : "days"}</Text>
+          </ShineCard>
+          <ShineCard style={styles.statCardOuter} contentStyle={styles.statCardInner}>
+            <Text style={styles.statLabel}>This Week</Text>
+            <Text style={styles.statValue}>{formatVolume(data.thisWeekVolume)}</Text>
+            <Text style={styles.statSub}>volume lifted</Text>
+          </ShineCard>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>This Week</Text>
-          <Text style={styles.statValue}>{formatVolume(data.thisWeekVolume)}</Text>
-          <Text style={styles.statSub}>volume lifted</Text>
-        </View>
-      </View>
+      </FadeIn>
 
       {data.program && (
-        <TouchableOpacity
-          style={styles.programCard}
-          onPress={() => router.push(`/programs/${data.program!.id}`)}
-        >
-          <View>
-            <Text style={styles.programCardLabel}>Active Program</Text>
-            <Text style={styles.programCardName}>{data.program.name}</Text>
-          </View>
-          <Text style={styles.programCardArrow}>{"→"}</Text>
-        </TouchableOpacity>
+        <FadeIn delay={60}>
+          <TouchableOpacity onPress={() => router.push(`/programs/${data.program!.id}`)}>
+            <ShineCard contentStyle={styles.programCardInner}>
+              <View>
+                <Text style={styles.programCardLabel}>Active Program</Text>
+                <Text style={styles.programCardName}>{data.program.name}</Text>
+              </View>
+              <Text style={styles.programCardArrow}>{"→"}</Text>
+            </ShineCard>
+          </TouchableOpacity>
+        </FadeIn>
       )}
 
       {!data.program && (
@@ -328,8 +338,10 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {data.items.map((item) => (
-        <LogSetRow key={item.id} item={item} token={token!} onLogged={handleLogged} />
+      {data.items.map((item, index) => (
+        <FadeIn key={item.id} delay={100 + index * 40}>
+          <LogSetRow item={item} token={token!} onLogged={handleLogged} />
+        </FadeIn>
       ))}
     </ScrollView>
     {restStartedAt !== null && (
@@ -347,7 +359,8 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.bg },
   centered: { justifyContent: "center", alignItems: "center" },
   scroll: { padding: 16, paddingTop: 56, paddingBottom: 40, gap: 10 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 },
+  headerWrap: { marginBottom: 8 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   badge: {
     flexDirection: "row",
     alignItems: "center",
@@ -368,7 +381,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  title: { color: colors.text, fontSize: 30, fontWeight: "800", marginTop: 10, lineHeight: 32 },
+  title: {
+    color: colors.text,
+    fontFamily: displayFont,
+    fontSize: 38,
+    marginTop: 10,
+    lineHeight: 38,
+    letterSpacing: 0.5,
+  },
   titleAccent: { color: colors.accent },
   headerLinks: { alignItems: "flex-end", gap: 10, marginTop: 6 },
   headerLink: { color: colors.muted, fontSize: 12, fontWeight: "600" },
@@ -389,14 +409,8 @@ const styles = StyleSheet.create({
   },
   offlineBannerText: { color: colors.accentBlue, fontSize: 12, fontWeight: "700", textAlign: "center" },
   statsRow: { flexDirection: "row", gap: 10 },
-  statCard: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface2,
-    borderRadius: 12,
-    padding: 14,
-  },
+  statCardOuter: { flex: 1 },
+  statCardInner: { padding: 14 },
   statLabel: {
     color: colors.muted,
     fontSize: 11,
@@ -404,16 +418,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  statValue: { color: colors.text, fontSize: 24, fontWeight: "800", marginTop: 4 },
+  statValue: { color: colors.text, fontFamily: displayFont, fontSize: 30, marginTop: 4 },
   statSub: { color: colors.accent, fontSize: 12, marginTop: 2 },
-  programCard: {
+  programCardInner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface2,
-    borderRadius: 12,
     padding: 14,
   },
   programCardLabel: {
@@ -442,13 +452,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   emptyText: { color: colors.muted, fontSize: 13, lineHeight: 18 },
-  card: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 14,
-  },
   cardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   cardHeaderText: { flex: 1 },
   exerciseName: { color: colors.text, fontSize: 15, fontWeight: "700" },

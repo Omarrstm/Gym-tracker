@@ -2,9 +2,12 @@ import { useCallback, useState } from "react";
 import { Redirect, useFocusEffect, useRouter } from "expo-router";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "@/constants/colors";
+import { displayFont } from "@/constants/fonts";
 import { muscleGroupLabels } from "@/constants/muscleGroups";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
+import ShineCard from "@/components/ShineCard";
+import FadeIn from "@/components/FadeIn";
 
 export default function AllPRsScreen() {
   const { token } = useAuth();
@@ -40,31 +43,31 @@ export default function AllPRsScreen() {
       ) : prs.length === 0 ? (
         <Text style={styles.emptyText}>No personal records yet.</Text>
       ) : (
-        prs.map((pr) => (
-          <TouchableOpacity
-            key={pr.exerciseId}
-            style={styles.row}
-            onPress={() => router.push(`/history/${pr.exerciseId}`)}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={styles.name} numberOfLines={1}>
-                {pr.name}
-              </Text>
-              <Text style={styles.muscleGroup}>
-                {muscleGroupLabels[pr.muscleGroup] ?? pr.muscleGroup}
-              </Text>
-            </View>
-            <View style={{ alignItems: "flex-end" }}>
-              <Text style={styles.weight}>{pr.weight} kg</Text>
-              <Text style={styles.date}>
-                {new Date(pr.date).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </Text>
-            </View>
-          </TouchableOpacity>
+        prs.map((pr, index) => (
+          <FadeIn key={pr.exerciseId} delay={index * 30}>
+            <TouchableOpacity onPress={() => router.push(`/history/${pr.exerciseId}`)}>
+              <ShineCard contentStyle={styles.rowInner}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.name} numberOfLines={1}>
+                    {pr.name}
+                  </Text>
+                  <Text style={styles.muscleGroup}>
+                    {muscleGroupLabels[pr.muscleGroup] ?? pr.muscleGroup}
+                  </Text>
+                </View>
+                <View style={{ alignItems: "flex-end" }}>
+                  <Text style={styles.weight}>{pr.weight} kg</Text>
+                  <Text style={styles.date}>
+                    {new Date(pr.date).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </Text>
+                </View>
+              </ShineCard>
+            </TouchableOpacity>
+          </FadeIn>
         ))
       )}
     </ScrollView>
@@ -84,21 +87,17 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: 10,
   },
-  title: { color: colors.text, fontSize: 30, fontWeight: "800" },
+  title: { color: colors.text, fontFamily: displayFont, fontSize: 36, letterSpacing: 0.5 },
   emptyText: { color: colors.muted, fontSize: 13 },
-  row: {
+  rowInner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
     padding: 12,
     gap: 10,
   },
   name: { color: colors.text, fontSize: 14, fontWeight: "700" },
   muscleGroup: { color: colors.muted, fontSize: 11, textTransform: "uppercase", marginTop: 2 },
-  weight: { color: colors.text, fontSize: 18, fontWeight: "800" },
+  weight: { color: colors.text, fontFamily: displayFont, fontSize: 20 },
   date: { color: colors.muted, fontSize: 11, marginTop: 2 },
 });
