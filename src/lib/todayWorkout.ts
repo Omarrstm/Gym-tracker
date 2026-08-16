@@ -44,14 +44,22 @@ export async function getTodaysWorkout(userId: string) {
       : [];
 
   const items =
-    programDay?.exercises.map((pe) => ({
-      id: pe.id,
-      exercise: pe.exercise,
-      targetWeight: pe.targetWeight,
-      targetSets: pe.targetSets,
-      targetReps: pe.targetReps,
-      loggedCount: todaysLogs.filter((log) => log.exerciseId === pe.exercise.id).length,
-    })) ?? [];
+    programDay?.exercises.map((pe) => {
+      const exerciseLogs = todaysLogs.filter((log) => log.exerciseId === pe.exercise.id);
+      const workingSetsLoggedToday = exerciseLogs
+        .filter((log) => !log.isWarmup)
+        .reduce((sum, log) => sum + log.sets, 0);
+
+      return {
+        id: pe.id,
+        exercise: pe.exercise,
+        targetWeight: pe.targetWeight,
+        targetSets: pe.targetSets,
+        targetReps: pe.targetReps,
+        loggedCount: exerciseLogs.length,
+        workingSetsLoggedToday,
+      };
+    }) ?? [];
 
   return { today, program, programDay, items };
 }

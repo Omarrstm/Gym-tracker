@@ -14,6 +14,7 @@ type TodayItem = {
   targetSets: number | null;
   targetReps: number | null;
   loggedCount: number;
+  workingSetsLoggedToday: number;
 };
 
 function BarbellIcon() {
@@ -49,26 +50,50 @@ function CheckIcon() {
   );
 }
 
-function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => void }) {
+function SetDots({ done, target }: { done: number; target: number }) {
+  return (
+    <span className="relative z-10 flex items-center gap-1">
+      {Array.from({ length: target }).map((_, i) => (
+        <span
+          key={i}
+          className={`h-2 w-2 rounded-full transition-colors ${
+            i < done ? "bg-accent" : "border border-border"
+          }`}
+        />
+      ))}
+    </span>
+  );
+}
+
+function LogSetRow({
+  item,
+  index,
+  onSetLogged,
+}: {
+  item: TodayItem;
+  index: number;
+  onSetLogged: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [weight, setWeight] = useState(item.targetWeight != null ? String(item.targetWeight) : "");
-  const [sets, setSets] = useState(item.targetSets != null ? String(item.targetSets) : "");
   const [reps, setReps] = useState(item.targetReps != null ? String(item.targetReps) : "");
   const [showExtra, setShowExtra] = useState(false);
   const [rir, setRir] = useState("");
   const [notes, setNotes] = useState("");
   const [isWarmup, setIsWarmup] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [justLogged, setJustLogged] = useState(false);
+  const [sessionSetsLogged, setSessionSetsLogged] = useState(0);
   const [newPR, setNewPR] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const logged = item.loggedCount + (justLogged ? 1 : 0);
+  const target = item.targetSets;
+  const doneSets = item.workingSetsLoggedToday + sessionSetsLogged;
+  const isComplete = target != null && doneSets >= target;
+  const nextSetNumber = doneSets + 1;
 
   function handleSubmit() {
     setError(null);
     const weightNum = Number(weight);
-    const setsNum = Number(sets);
     const repsNum = Number(reps);
 
     startTransition(async () => {
@@ -76,13 +101,13 @@ function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => 
         const result = await logWorkoutSet({
           exerciseId: item.exercise.id,
           weight: weightNum,
-          sets: setsNum,
+          sets: 1,
           reps: repsNum,
           rir: rir === "" ? null : Number(rir),
           notes: notes.trim() === "" ? null : notes.trim(),
           isWarmup,
         });
-        setJustLogged(true);
+        if (!isWarmup) setSessionSetsLogged((c) => c + 1);
         setOpen(false);
         setRir("");
         setNotes("");
@@ -97,7 +122,10 @@ function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => 
   }
 
   return (
-    <div className="card-shine card-pattern flex flex-col rounded-xl px-3.5 py-3">
+    <div
+      className="card-shine card-pattern flex flex-col rounded-xl px-3.5 py-3"
+      style={{ animation: "fade-slide-up 0.45s ease-out both", animationDelay: `${index * 70}ms` }}
+    >
       <button onClick={() => setOpen((v) => !v)} className="flex w-full items-center gap-3 text-left">
         <span className="relative z-10 flex h-[34px] w-[34px] flex-none items-center justify-center rounded-[9px] bg-surface-2 text-accent">
           <BarbellIcon />
@@ -114,13 +142,23 @@ function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => 
               New PR
             </span>
           )}
-          <span className="text-[12.5px] text-muted">
-            {item.targetWeight != null && item.targetSets != null && item.targetReps != null
-              ? `${item.targetWeight} kg × ${item.targetSets} × ${item.targetReps}`
-              : "No target set"}
-          </span>
-          {logged > 0 && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-bg">
+          {target != null ? (
+            <span className="flex items-center gap-2">
+              <span className="text-[12.5px] tabular-nums text-muted">
+                {doneSets}/{target} sets
+              </span>
+              <SetDots done={doneSets} target={target} />
+            </span>
+          ) : (
+            <span className="text-[12.5px] text-muted">
+              {doneSets > 0 ? `${doneSets} logged` : "No target set"}
+            </span>
+          )}
+          {(isComplete || (target == null && doneSets > 0)) && (
+            <span
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-bg"
+              style={{ animation: "scale-in 0.3s ease-out" }}
+            >
               <CheckIcon />
             </span>
           )}
@@ -129,7 +167,15 @@ function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => 
 
       {open && (
         <div className="relative z-10 mt-3 rounded-xl border border-border bg-surface-2 p-3.5">
-          <div className="grid grid-cols-3 gap-2">
+          <p className="mb-2.5 text-[11px] font-semibold tracking-wide text-accent uppercase">
+            {isComplete
+              ? "Target complete — logging an extra set"
+              : target != null
+                ? `Logging set ${nextSetNumber} of ${target}`
+                : `Logging set ${nextSetNumber}`}
+          </p>
+
+          <div className="grid grid-cols-2 gap-2">
             <label className="flex flex-col gap-1">
               <span className="text-[10px] font-semibold tracking-wide text-muted uppercase">
                 Weight (kg)
@@ -141,18 +187,6 @@ function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => 
                 step="0.5"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
-                className="rounded-lg border border-border bg-surface px-2.5 py-2 text-[14px] text-text outline-none focus-visible:border-accent"
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-[10px] font-semibold tracking-wide text-muted uppercase">Sets</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                min="1"
-                step="1"
-                value={sets}
-                onChange={(e) => setSets(e.target.value)}
                 className="rounded-lg border border-border bg-surface px-2.5 py-2 text-[14px] text-text outline-none focus-visible:border-accent"
               />
             </label>
@@ -225,10 +259,16 @@ function LogSetRow({ item, onSetLogged }: { item: TodayItem; onSetLogged: () => 
 
           <button
             onClick={handleSubmit}
-            disabled={isPending || !weight || !sets || !reps}
+            disabled={isPending || !weight || !reps}
             className="mt-3 w-full rounded-xl bg-accent py-2.5 text-center text-[13px] font-bold tracking-wide text-bg uppercase disabled:opacity-50"
           >
-            {isPending ? "Saving..." : logged > 0 ? "Log Another Set" : "Log Set"}
+            {isPending
+              ? "Saving..."
+              : isComplete
+                ? "Log Extra Set"
+                : target != null
+                  ? `Log Set ${nextSetNumber} of ${target}`
+                  : `Log Set ${nextSetNumber}`}
           </button>
         </div>
       )}
@@ -291,8 +331,13 @@ export default function TodayWorkout({
           {dayNote}
         </p>
       )}
-      {items.map((item) => (
-        <LogSetRow key={item.id} item={item} onSetLogged={() => setRestStartedAt(Date.now())} />
+      {items.map((item, i) => (
+        <LogSetRow
+          key={item.id}
+          item={item}
+          index={i}
+          onSetLogged={() => setRestStartedAt(Date.now())}
+        />
       ))}
       {restStartedAt !== null && (
         <RestTimer
