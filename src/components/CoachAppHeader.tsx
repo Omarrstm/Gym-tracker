@@ -5,6 +5,7 @@ const links = [
   { href: "/exercises", label: "Exercise Library" },
   { href: "/program", label: "My Programs" },
   { href: "/history", label: "History" },
+  { href: "/progress", label: "Progress" },
   { href: "/stats", label: "Stats" },
   { href: "/coach/profile", label: "Coach Profile" },
 ];
