@@ -14,6 +14,7 @@ import { colors } from "@/constants/colors";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
+import RestTimer from "@/components/RestTimer";
 
 function formatVolume(kg: number): string {
   if (kg >= 1000) return `${(kg / 1000).toFixed(1)}t`;
@@ -166,6 +167,7 @@ export default function HomeScreen() {
   const [data, setData] = useState<api.TodayResponse | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [prBanner, setPrBanner] = useState(false);
+  const [restStartedAt, setRestStartedAt] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -188,6 +190,7 @@ export default function HomeScreen() {
 
   function handleLogged(isNewPR: boolean) {
     load();
+    setRestStartedAt(Date.now());
     if (isNewPR) {
       setPrBanner(true);
       setTimeout(() => setPrBanner(false), 2500);
@@ -203,6 +206,7 @@ export default function HomeScreen() {
   }
 
   return (
+    <View style={styles.flex}>
     <ScrollView
       style={styles.flex}
       contentContainerStyle={styles.scroll}
@@ -292,6 +296,14 @@ export default function HomeScreen() {
         <LogSetRow key={item.id} item={item} token={token!} onLogged={handleLogged} />
       ))}
     </ScrollView>
+    {restStartedAt !== null && (
+      <RestTimer
+        key={restStartedAt}
+        duration={user?.restTimerSeconds ?? 90}
+        onDismiss={() => setRestStartedAt(null)}
+      />
+    )}
+    </View>
   );
 }
 
