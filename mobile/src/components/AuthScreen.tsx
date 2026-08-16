@@ -14,9 +14,15 @@ import { colors } from "@/constants/colors";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
 
-export default function AuthScreen() {
+export default function AuthScreen({
+  initialMode = "login",
+  onBack,
+}: {
+  initialMode?: "login" | "signup";
+  onBack?: () => void;
+}) {
   const { signIn, signUp } = useAuth();
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup">(initialMode);
   const [role, setRole] = useState<"athlete" | "coach">("athlete");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -46,6 +52,11 @@ export default function AuthScreen() {
       style={styles.flex}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
+      {onBack && (
+        <TouchableOpacity onPress={onBack} style={styles.back}>
+          <Text style={styles.backText}>{"←"} Back</Text>
+        </TouchableOpacity>
+      )}
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Text style={styles.eyebrow}>Gym Tracker</Text>
         <Text style={styles.title}>{mode === "login" ? "Log In" : "Create Account"}</Text>
@@ -161,6 +172,8 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.bg },
   scroll: { flexGrow: 1, justifyContent: "center", padding: 24, gap: 4 },
+  back: { position: "absolute", top: 56, left: 24, zIndex: 1 },
+  backText: { color: colors.muted, fontSize: 12, fontWeight: "600" },
   eyebrow: {
     color: colors.accent,
     fontSize: 13,
