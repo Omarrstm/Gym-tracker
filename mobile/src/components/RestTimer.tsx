@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AppState, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "@/constants/colors";
 import { displayFont } from "@/constants/fonts";
 import {
@@ -22,9 +22,17 @@ export default function RestTimer({
   duration: number;
   onDismiss: () => void;
 }) {
+  // Anchored to a wall-clock end time (not a tick counter) so the countdown
+  // self-corrects after the JS timer is throttled/paused while backgrounded,
+  // instead of resuming from a frozen, now-stale value.
+  const [endAt, setEndAt] = useState(() => Date.now() + duration * 1000);
   const [remaining, setRemaining] = useState(duration);
   const isDone = remaining <= 0;
   const notificationIdRef = useRef<string | null>(null);
+
+  const recompute = useCallback((at: number) => {
+    setRemaining(Math.max(0, Math.round((at - Date.now()) / 1000)));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,11 +52,16 @@ export default function RestTimer({
 
   useEffect(() => {
     if (isDone) return;
-    const id = setInterval(() => {
-      setRemaining((r) => Math.max(0, r - 1));
-    }, 1000);
+    const id = setInterval(() => recompute(endAt), 1000);
     return () => clearInterval(id);
-  }, [isDone]);
+  }, [isDone, endAt, recompute]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") recompute(endAt);
+    });
+    return () => sub.remove();
+  }, [endAt, recompute]);
 
   useEffect(() => {
     if (!isDone) return;
@@ -57,9 +70,11 @@ export default function RestTimer({
   }, [isDone, onDismiss]);
 
   function adjust(delta: number) {
-    setRemaining((r) => Math.max(0, r + delta));
+    const newEndAt = endAt + delta * 1000;
+    setEndAt(newEndAt);
+    recompute(newEndAt);
     cancelNotification(notificationIdRef.current);
-    const newRemaining = Math.max(0, remaining + delta);
+    const newRemaining = Math.max(0, Math.round((newEndAt - Date.now()) / 1000));
     scheduleRestCompleteNotification(newRemaining).then((id) => {
       notificationIdRef.current = id;
     });
