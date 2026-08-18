@@ -252,6 +252,30 @@ export function getExerciseHistory(token: string, exerciseId: string) {
   return request<ExerciseHistoryResponse>(`/api/mobile/history/${exerciseId}`, { token });
 }
 
+export type UpdateWorkoutLogInput = {
+  weight: number;
+  sets: number;
+  reps: number;
+  rir?: number | null;
+  notes?: string | null;
+  isWarmup?: boolean;
+};
+
+export function updateWorkoutLog(token: string, logId: string, input: UpdateWorkoutLogInput) {
+  return request<{ ok: true }>(`/api/mobile/logs/${logId}`, {
+    method: "PATCH",
+    token,
+    body: input,
+  });
+}
+
+export function deleteWorkoutLog(token: string, logId: string) {
+  return request<{ ok: true }>(`/api/mobile/logs/${logId}`, {
+    method: "DELETE",
+    token,
+  });
+}
+
 export type ExerciseLibraryEntry = {
   id: string;
   name: string;

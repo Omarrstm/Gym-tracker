@@ -1,11 +1,20 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Redirect, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { colors } from "@/constants/colors";
 import { displayFont } from "@/constants/fonts";
 import { muscleGroupLabels } from "@/constants/muscleGroups";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
+import { ApiError } from "@/lib/api";
 import ShineCard from "@/components/ShineCard";
 import FadeIn from "@/components/FadeIn";
 
@@ -19,7 +28,152 @@ const trendStyleMap = {
   flat: { border: colors.border, bg: colors.surface2, text: colors.muted },
 };
 
-function SessionLogRow({ log }: { log: api.SessionLog }) {
+function SessionLogRow({
+  log,
+  token,
+  onChanged,
+}: {
+  log: api.SessionLog;
+  token: string;
+  onChanged: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [weight, setWeight] = useState(String(log.weight));
+  const [sets, setSets] = useState(String(log.sets));
+  const [reps, setReps] = useState(String(log.reps));
+  const [rir, setRir] = useState(log.rir != null ? String(log.rir) : "");
+  const [notes, setNotes] = useState(log.notes ?? "");
+  const [isWarmup, setIsWarmup] = useState(log.isWarmup);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const confirmResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function handleSave() {
+    setError(null);
+    setPending(true);
+    try {
+      await api.updateWorkoutLog(token, log.id, {
+        weight: Number(weight),
+        sets: Number(sets),
+        reps: Number(reps),
+        rir: rir === "" ? null : Number(rir),
+        notes: notes.trim() === "" ? null : notes.trim(),
+        isWarmup,
+      });
+      setEditing(false);
+      onChanged();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Couldn't save changes.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirmingDelete) {
+      setConfirmingDelete(true);
+      confirmResetRef.current = setTimeout(() => setConfirmingDelete(false), 3000);
+      return;
+    }
+    if (confirmResetRef.current) clearTimeout(confirmResetRef.current);
+    setPending(true);
+    try {
+      await api.deleteWorkoutLog(token, log.id);
+      onChanged();
+    } finally {
+      setPending(false);
+    }
+  }
+
+  if (editing) {
+    return (
+      <ShineCard contentStyle={styles.logRowInner}>
+        <Text style={styles.logDate}>{formatDate(log.date)}</Text>
+        <View style={styles.editInputsRow}>
+          <View style={styles.editInputField}>
+            <Text style={styles.editLabel}>Weight</Text>
+            <TextInput
+              value={weight}
+              onChangeText={setWeight}
+              keyboardType="decimal-pad"
+              style={styles.editInput}
+              placeholderTextColor={colors.muted}
+            />
+          </View>
+          <View style={styles.editInputField}>
+            <Text style={styles.editLabel}>Sets</Text>
+            <TextInput
+              value={sets}
+              onChangeText={setSets}
+              keyboardType="number-pad"
+              style={styles.editInput}
+              placeholderTextColor={colors.muted}
+            />
+          </View>
+          <View style={styles.editInputField}>
+            <Text style={styles.editLabel}>Reps</Text>
+            <TextInput
+              value={reps}
+              onChangeText={setReps}
+              keyboardType="number-pad"
+              style={styles.editInput}
+              placeholderTextColor={colors.muted}
+            />
+          </View>
+        </View>
+        <View style={styles.editInputsRow}>
+          <View style={styles.editInputField}>
+            <Text style={styles.editLabel}>RIR</Text>
+            <TextInput
+              value={rir}
+              onChangeText={setRir}
+              keyboardType="number-pad"
+              placeholder="—"
+              style={styles.editInput}
+              placeholderTextColor={colors.muted}
+            />
+          </View>
+          <View style={[styles.editInputField, { flex: 2 }]}>
+            <Text style={styles.editLabel}>Notes</Text>
+            <TextInput
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="Optional"
+              style={styles.editInput}
+              placeholderTextColor={colors.muted}
+            />
+          </View>
+        </View>
+        <TouchableOpacity
+          style={[styles.warmupToggle, isWarmup && styles.warmupToggleActive]}
+          onPress={() => setIsWarmup((v) => !v)}
+        >
+          <Text style={[styles.warmupToggleText, isWarmup && styles.warmupToggleTextActive]}>
+            {isWarmup ? "Warm-up set" : "Mark as warm-up"}
+          </Text>
+        </TouchableOpacity>
+        {error && <Text style={styles.error}>{error}</Text>}
+        <View style={styles.editActionsRow}>
+          <TouchableOpacity
+            style={[styles.saveButton, pending && styles.disabled]}
+            onPress={handleSave}
+            disabled={pending}
+          >
+            {pending ? (
+              <ActivityIndicator color={colors.bg} />
+            ) : (
+              <Text style={styles.saveButtonText}>Save</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setEditing(false)} disabled={pending}>
+            <Text style={styles.cancelLink}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </ShineCard>
+    );
+  }
+
   return (
     <ShineCard contentStyle={styles.logRowInner}>
       <View style={styles.logRowTop}>
@@ -42,6 +196,16 @@ function SessionLogRow({ log }: { log: api.SessionLog }) {
         </View>
       </View>
       {log.notes && <Text style={styles.notes}>{log.notes}</Text>}
+      <View style={styles.rowActions}>
+        <TouchableOpacity onPress={() => setEditing(true)}>
+          <Text style={styles.editLink}>Edit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleDelete} disabled={pending}>
+          <Text style={[styles.deleteLink, confirmingDelete && styles.deleteLinkConfirming]}>
+            {confirmingDelete ? "Confirm?" : "Delete"}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </ShineCard>
   );
 }
@@ -131,7 +295,7 @@ export default function ExerciseHistoryScreen() {
                     </View>
                   </View>
                   {session.logs.map((log) => (
-                    <SessionLogRow key={log.id} log={log} />
+                    <SessionLogRow key={log.id} log={log} token={token} onChanged={load} />
                   ))}
                 </View>
               </FadeIn>
@@ -220,4 +384,59 @@ const styles = StyleSheet.create({
   logStats: { color: colors.text, fontSize: 13, fontWeight: "600" },
   rir: { color: colors.muted, fontSize: 11, fontWeight: "600" },
   notes: { color: colors.muted, fontSize: 12, marginTop: 6, lineHeight: 16 },
+  rowActions: { flexDirection: "row", gap: 16, marginTop: 8 },
+  editLink: { color: colors.muted, fontSize: 12, fontWeight: "600" },
+  deleteLink: { color: colors.muted, fontSize: 12, fontWeight: "600" },
+  deleteLinkConfirming: { color: colors.danger },
+  editInputsRow: { flexDirection: "row", gap: 8, marginTop: 8 },
+  editInputField: { flex: 1 },
+  editLabel: {
+    color: colors.muted,
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    marginBottom: 4,
+  },
+  editInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface2,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    color: colors.text,
+    fontSize: 14,
+  },
+  warmupToggle: {
+    alignSelf: "flex-start",
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface2,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  warmupToggleActive: { borderColor: colors.accentBlue, backgroundColor: colors.accentBlueSoft },
+  warmupToggleText: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  warmupToggleTextActive: { color: colors.accentBlue },
+  error: { color: colors.danger, fontSize: 12, marginTop: 8 },
+  editActionsRow: { flexDirection: "row", alignItems: "center", gap: 14, marginTop: 10 },
+  saveButton: {
+    backgroundColor: colors.accent,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    alignItems: "center",
+  },
+  saveButtonText: { color: colors.bg, fontWeight: "800", fontSize: 12, textTransform: "uppercase" },
+  disabled: { opacity: 0.5 },
+  cancelLink: { color: colors.muted, fontSize: 12, fontWeight: "700" },
 });
