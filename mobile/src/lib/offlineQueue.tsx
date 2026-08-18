@@ -74,6 +74,17 @@ export function OfflineQueueProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  useEffect(() => {
+    // Safety net: the reconnect/mount triggers above only fire flush() once.
+    // If that attempt fails for a transient reason (e.g. DNS/routing not yet
+    // back up right after leaving airplane mode), nothing else retries it, so
+    // the queue -- and the "Syncing..." banner -- would get stuck forever.
+    if (!isOnline || pending.length === 0) return;
+    const id = setTimeout(() => flush(), 4000);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline, pending]);
+
   async function flush() {
     if (flushingRef.current || !tokenRef.current) return;
     flushingRef.current = true;
