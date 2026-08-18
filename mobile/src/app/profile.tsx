@@ -251,9 +251,10 @@ export default function ProfileScreen() {
           <>
             <View style={styles.switchRow}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.switchLabel}>Require Face ID / Fingerprint</Text>
+                <Text style={styles.switchLabel}>Lock with Face ID / Fingerprint</Text>
                 <Text style={styles.switchHint}>
-                  Lock the app behind biometric verification each time you open it.
+                  Verify each time you open the app. Your phone&rsquo;s PIN works too if biometrics
+                  fail.
                 </Text>
               </View>
               <Switch
